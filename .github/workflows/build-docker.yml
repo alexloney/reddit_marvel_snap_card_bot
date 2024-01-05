@@ -10,13 +10,22 @@ on:
     branches:
       - main
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
+    permissions:
+      packages: write
     steps:
-      - uses: actions/checkout@v2
-      - name: Login to GitHub Container Registry
-        run: docker login ghcr.io -u ${{ secrets.GHCR_USERNAME }} -p ${{ secrets.GHCR_TOKEN }}
-      - name: create image from repository
-        run: docker build -t ghcr.io/${{ github.actor }}/reddit_marvel_snap_card_bot .
-      - name: push image to GitHub Container Registry
-        run: docker push ghcr.io/${{ github.actor }}/reddit_marvel_snap_card_bot:latest
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Login to GitHub Packages
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: true
+          tags: ghcr.io/${{ github.repository }}:${{ github.sha }}
