@@ -1,0 +1,22 @@
+name: Build Docker Container
+run-name: ${{ github.actor }} is building Docker container
+on:
+  workflow_run:
+    workflows: ["Test Project"]
+    branches: [main]
+    types:
+      - completed
+  push:
+    branches:
+      - main
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Login to GitHub Container Registry
+        run: docker login ghcr.io -u ${{ secrets.GHCR_USERNAME }} -p ${{ secrets.GHCR_TOKEN }}
+      - name: create image from repository
+        run: docker build -t ghcr.io/${{ github.actor }}/reddit_marvel_snap_card_bot .
+      - name: push image to GitHub Container Registry
+        run: docker push ghcr.io/${{ github.actor }}/reddit_marvel_snap_card_bot:latest
