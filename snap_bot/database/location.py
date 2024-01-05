@@ -1,7 +1,7 @@
 from . import Entry
 
 class Location(Entry):
-    def __init__(self, name, ability, rarity, released, url):
+    def __init__(self, name:str, ability:str, rarity:str, released:bool, url:str):
         super().__init__(name, ability, released, url)
         self.rarity = rarity
     
@@ -15,7 +15,7 @@ class Location(Entry):
             response += '**\[[' + self.name + '](' + self.url + ')\]** '
         else:
             response += '**\[' + self.name + '\]** '
-        if self.released == '0':
+        if self.released == False:
             response += '(Unreleased) '
         response += '**Location:** Rarity ' + self.rarity + '  '
         response += 'Description:** ' + self.ability

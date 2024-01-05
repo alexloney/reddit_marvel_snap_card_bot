@@ -29,12 +29,6 @@ if __name__ == '__main__':
     database.update_card_database()
     last_database_update = datetime.datetime.now()
 
-    for card in database.search('wolverine'):
-        print(card)
-
-    import sys
-    sys.exit(0)
-
     logging.info('Establishing Reddit connection (' + subreddit + ')')
     reddit_connect = RedditConnect(subreddit, config_file)
 

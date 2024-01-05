@@ -78,9 +78,13 @@ class Database:
             name = jdata[location]['name']
             ability = jdata[location]['description']
             rarity = jdata[location]['rarity']
-            released = jdata[location]['released']
+            released_text = jdata[location]['released']
             url = 'https://marvelsnap.pro/cards/' + location
-        
+
+            released = True
+            if released_text == '0':
+                released = False
+
             self.locations.append(Location(name, ability, rarity, released, url))
 
     def update_card_database(self):

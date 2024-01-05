@@ -18,7 +18,7 @@ class Card(Entry):
             response += '**\[[' + self.name + '](' + self.url + ')\]** '
         else:
             response += '**\[' + self.name + '\]** '
-        if self.released == '0':
+        if self.released == False:
             response += '(Unreleased) '
         response += '**Cost:** ' + str(self.cost) + ' '
         response += '**Power:** ' + str(self.power) + '  '
