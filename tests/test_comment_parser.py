@@ -100,6 +100,17 @@ class TestCommentParser(unittest.TestCase):
 
         expected_results = ['odin']
         self.assertEqual(expected_results, results)
+        
+    def test_extra_slashes_from_reddit_editor(self):
+        """
+        Test to ensure a comment with tag at the end returns correctly
+        """
+        comment = Comment('1', r'This is a test \\[\\[odin\\]\\] body with one tag', 'http://example.com')
+        parser = CommentParser(comment)
+        results = parser.parse()
+
+        expected_results = ['odin']
+        self.assertEqual(expected_results, results)
 
 
 if __name__ == '__main__':

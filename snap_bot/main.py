@@ -2,6 +2,10 @@
 
 import datetime
 import logging
+import argparse
+import os
+import sys
+import time
 
 from database import Database
 from reddit_connect import RedditConnect
@@ -16,21 +20,160 @@ if __name__ == '__main__':
     
     logging.info('Starting Reddit bot')
 
-    # Variables, these can be moved to either ENV or CLI arguments
-    subreddit = 'MarvelSnap'
-    config_file = '../config.json'
-    database_update_timeout = 60*60*24
+    # Configuration variables for running. We first apply default values to all
+    # of the variables, next we will fetch each variable from the environment
+    # variables (useful for unning in a Docker container), overriding all default
+    # values. Finally, we will again fetch each variable from the CLI arguments
+    # as the final say in the variable value
+    subreddit = ''
+    config_file = ''
+    db_update_timeout = 60*60*24
+    reply_timeout = 10
+    max_fuzzy_distance = 2
+    dry_run = False
+    debug = False
+    client_id = ''
+    client_secret = ''
+    user_agent = ''
+    reddit_username = ''
+    reddit_password = ''
 
-    database = Database()
+    if os.environ.get('SUBREDDIT') is not None:
+        subreddit = os.environ.get('SUBREDDIT')
+    if os.environ.get('CONFIG_FILE') is not None:
+        config_file = os.environ.get('CONFIG_FILE')
+    if os.environ.get('DB_TIMEOUT') is not None:
+        db_update_timeout = int(os.environ.get('DB_TIMEOUT'))
+    if os.environ.get('REPLY_TIMEOUT') is not None:
+        reply_timeout = int(os.environ.get('REPLY_TIMEOUT'))
+    if os.environ.get('MAX_FUZZY_DISTANCE') is not None:
+        max_fuzzy_distance = int(os.environ.get('MAX_FUZZY_DISTANCE'))
+    if os.environ.get('DRY_RUN') is not None:
+        if os.environ.get('DRY_RUN').lower() == 'true':
+            dry_run = True
+        else:
+            dry_run = False
+    if os.environ.get('DEBUG') is not None:
+        if os.environ.get('DEBUG').lower() == 'true':
+            debug = True
+        else:
+            debug = False
+    if os.environ.get('CLIENT_ID') is not None:
+        client_id = os.environ.get('CLIENT_ID')
+    if os.environ.get('CLIENT_SECRET') is not None:
+        client_secret = os.environ.get('CLIENT_SECRET')
+    if os.environ.get('USER_AGENT') is not None:
+        user_agent = os.environ.get('USER_AGENT')
+    if os.environ.get('REDDIT_USERNAME') is not None:
+        reddit_username = os.environ.get('REDDIT_USERNAME')
+    if os.environ.get('REDDIT_PASSWORD') is not None:
+        reddit_password = os.environ.get('REDDIT_PASSWORD')
+
+    parser = argparse.ArgumentParser(description='Marvel Snap Card Bot for Reddit')
+    parser.add_argument(
+        '--subreddit', 
+        '-s', 
+        default=subreddit,
+        help='Subreddit to monitor comments from (env: SUBREDDIT)')
+    parser.add_argument(
+        '--config-file',
+        '-c',
+        default=config_file,
+        help='Configuration file to use for secrets (env: CONFIG_FILE)')
+    parser.add_argument(
+        '--database-update-timeout',
+        '-u',
+        default=db_update_timeout,
+        help='Delay (in seconds) between database refresh (env: DB_TIMEOUT)')
+    parser.add_argument(
+        '--reply-timeout',
+        default=reply_timeout,
+        help='Delay (in seconds) between replies (env: REPLY_TIMEOUT)')
+    parser.add_argument(
+        '--max-fuzzy-distance',
+        default=max_fuzzy_distance,
+        help='Allowed distance between search and match (env: MAX_FUZZY_DISTANCE)')
+    parser.add_argument(
+        '--dry-run',
+        action='store_true',
+        help='Run but do not actually post to Reddit (env: DRY_RUN)')
+    parser.add_argument(
+        '--debug',
+        '-d',
+        action='store_true',
+        help='Display additonal debug logging (env: DEBUG)')
+    parser.add_argument(
+        '--client-id',
+        default=client_id,
+        help='Reddit application client ID (env: CLIENT_ID)')
+    parser.add_argument(
+        '--client-secret',
+        default=client_secret,
+        help='Reddit application client secret (env: CLIENT_SECRET)')
+    parser.add_argument(
+        '--user-agent',
+        default=client_secret,
+        help='Reddit application user agent (env: USER_AGENT)')
+    parser.add_argument(
+        '--reddit-username',
+        default=reddit_username,
+        help='Reddit account username (env: REDDIT_USERNAME)')
+    parser.add_argument(
+        '--reddit-password',
+        default=reddit_password,
+        help='Reddit account password (env: REDDIT_PASSWORD)')
+    
+    args = parser.parse_args()
+
+    subreddit = args.subreddit
+    config_file = args.config_file
+    db_update_timeout = args.database_update_timeout
+    reply_timeout = args.reply_timeout
+    max_fuzzy_distance = args.max_fuzzy_distance
+    dry_run = args.dry_run
+    debug = args.debug
+    client_id = args.client_id
+    client_secret = args.client_secret
+    user_agent = args.user_agent
+    reddit_username = args.reddit_username
+    reddit_password = args.reddit_password
+
+    if debug:
+        logging.getLogger("").setLevel(logging.DEBUG)
+        logging.debug('Debug logging enabled')
+
+    if len(config_file) == 0 and \
+       (len(client_id) == 0 or \
+        len(client_secret) == 0 or \
+        len(user_agent) == 0 or \
+        len(reddit_username) == 0 or \
+        len(reddit_password) == 0):
+        print('Error: Either a config file, or all config details must be provided')
+        sys.exit(1)
+    
+    if len(subreddit) == 0:
+        print('Error: You must provide a subreddit to monitor')
+        sys.exit(1)
+
+    database = Database(max_fuzzy_distance)
 
     # Perform our initial database update to get the first version of our card
     # lookups
     logging.info('Loading card lookup database')
     database.update_card_database()
     last_database_update = datetime.datetime.now()
+    logging.info('Next DB update in ' + str(db_update_timeout) + 's')
 
     logging.info('Establishing Reddit connection (' + subreddit + ')')
-    reddit_connect = RedditConnect(subreddit, config_file)
+    if len(config_file) > 0:
+        logging.info('Using Reddit config file')
+        reddit_connect = RedditConnect(subreddit)
+        reddit_connect.init_reddit_config(config_file)
+    else:
+        logging.info('Using supplied id/secret/agent/user/pass')
+        reddit_connect = RedditConnect(subreddit)
+        reddit_connect.init_reddit_args(client_id, client_secret, user_agent, reddit_username, reddit_password)
+    logging.info('Reddit connection established')
 
     # Continue forever...or untill killed
     try:
@@ -41,7 +184,7 @@ if __name__ == '__main__':
             # interval, update our internal card lookup database and reset our
             # last time we updated.
             current_time = datetime.datetime.now()
-            if (current_time - last_database_update).total_seconds() > database_update_timeout:
+            if (current_time - last_database_update).total_seconds() > db_update_timeout:
                 logging.info('Reloading card lookup database')
                 database.update_card_database()
                 last_database_update = datetime.datetime.now()
@@ -76,7 +219,12 @@ if __name__ == '__main__':
                     authors = reddit_connect.get_comment_reply_author_names(comment.id)
                     if reddit_connect.get_my_username() not in authors:
                         logging.info('Submitting reply')
-                        reddit_connect.add_reply(comment.id, response)
+                        if dry_run == False:
+                            reddit_connect.add_reply(comment.id, response)
+                        
+                        logging.info('Sleeping for ' + str(reply_timeout) + 's')
+                        time.sleep(reply_timeout)
+                        
 
     except KeyboardInterrupt:
         pass

@@ -11,5 +11,5 @@ class CommentParser:
         Use a simple regex pattern to find all [[xxx]] entries in the comment
         body, returning a list of the entries found
         """
-        match = re.findall(r'\[\[([^]]+)\]\]', self.comment.body)
+        match = re.findall(r'\\?\\?\[\\?\\?\[([^]\\]+)\\?\\?\]\\?\\?\]', self.comment.body)
         return match

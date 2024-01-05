@@ -4,11 +4,9 @@ import json
 from comments import Comment
 
 class RedditConnect:
-    def __init__(self, subreddit, config_file):
+    def __init__(self, subreddit: str):
         self.subreddit_name = subreddit
         self.username = ''
-        self.init_reddit(config_file)
-
         self.seen_comments = []
 
     def get_my_username(self):
@@ -19,7 +17,7 @@ class RedditConnect:
         """
         return self.username
     
-    def init_reddit(self, config_file):
+    def init_reddit_config(self, config_file: str):
         """
         Initialize the Reddit connection, use the details stored in the config
         file to initiate a connection to Reddit
@@ -27,16 +25,27 @@ class RedditConnect:
         with open(config_file) as f:
             config = json.load(f)
         
+        self.init_reddit_args(
+            config['client_id'],
+            config['client_secret'],
+            config['user_agent'],
+            config['username'],
+            config['password'])
+    
+    def init_reddit_args(self, client_id: str, client_secret: str, user_agent: str, username: str, password: str):
+        """
+        Initialize the Reddit connection using the supplied details
+        """
         self.reddit = praw.Reddit(
-            client_id = config['client_id'],
-            client_secret = config['client_secret'],
-            username = config['username'],
-            password = config['password'],
-            user_agent = config['user_agent'])
+            client_id = client_id,
+            client_secret = client_secret,
+            username = username,
+            password = password,
+            user_agent = user_agent)
 
         self.subreddit = self.reddit.subreddit(self.subreddit_name)
 
-        self.username = config['username']
+        self.username = username
     
     def get_comments_shallow(self):
         """
@@ -62,7 +71,7 @@ class RedditConnect:
 
         return comments
     
-    def get_comment_reply_author_names(self, id):
+    def get_comment_reply_author_names(self, id: str):
         """
         Fetch the names of the authors for a given comment.
         """
@@ -74,6 +83,15 @@ class RedditConnect:
 
         return authors
 
-    def add_reply(self, comment_id, reply_text):
+    def add_reply(self, comment_id: str, reply_text: str):
+        """
+        Load a specific comment by ID and submit a reply to it
+        """
         comment = self.reddit.comment(comment_id)
         comment.reply(reply_text)
+    
+    def enable_readonly(self):
+        """
+        Enable read-only mode, useful for dry run
+        """
+        self.reddit.read_only = True

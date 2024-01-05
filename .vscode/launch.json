@@ -10,7 +10,8 @@
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal",
-            "justMyCode": true
+            "justMyCode": true,
+            "args": ["--subreddit", "driagan_test", "--config-file", "config.json", "--dry-run"]
         }
     ]
 }
