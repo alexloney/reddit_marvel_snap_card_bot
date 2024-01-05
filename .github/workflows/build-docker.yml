@@ -15,6 +15,9 @@ jobs:
     permissions:
       packages: write
     steps:
+      - name: Set Lowercase Repository Name
+        run: |
+          export REPOSITORY_LC=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
       - name: Checkout
         uses: actions/checkout@v2
       - name: Login to GitHub Packages
@@ -28,4 +31,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/${{ github.repository }}:${{ github.sha }}
+          tags: ghcr.io/${REPOSITORY_LC}:${{ github.sha }}
