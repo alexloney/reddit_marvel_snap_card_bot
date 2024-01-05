@@ -1,7 +1,9 @@
 import re
 
+from . import Comment
+
 class CommentParser:
-    def __init__(self, comment):
+    def __init__(self, comment: Comment):
         self.comment = comment
     
     def parse(self):

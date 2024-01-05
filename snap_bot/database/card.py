@@ -1,7 +1,7 @@
-from entry import Entry
+from . import Entry
 
 class Card(Entry):
-    def __init__(self, name, cost, power, ability, released, url):
+    def __init__(self, name: str, cost: int, power: int, ability: str, released: bool, url: str):
         super().__init__(name, ability, released, url)
         self.cost = cost
         self.power = power
@@ -26,3 +26,11 @@ class Card(Entry):
         response += '\n\n'
 
         return response
+
+    def __eq__(self, other):
+        return self.name == other.name and \
+               self.cost == other.cost and \
+               self.power == other.power and \
+               self.ability == other.ability and \
+               self.released == other.released and \
+               self.url == other.url

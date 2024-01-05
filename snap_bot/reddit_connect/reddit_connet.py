@@ -1,7 +1,7 @@
 import praw
 import json
 
-from comment import Comment
+from comments import Comment
 
 class RedditConnect:
     def __init__(self, subreddit, config_file):

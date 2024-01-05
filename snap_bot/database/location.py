@@ -1,4 +1,4 @@
-from entry import Entry
+from . import Entry
 
 class Location(Entry):
     def __init__(self, name, ability, rarity, released, url):

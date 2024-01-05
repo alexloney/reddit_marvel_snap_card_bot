@@ -1,18 +1,18 @@
 import requests
 from wells.utils import retry
 
-from card import Card
-from location import Location
+from . import Card
+from . import Location
 
 class Database:
-    def __init__(self, max_fuzzy_distance=2):
+    def __init__(self, max_fuzzy_distance: int = 2):
         self.cards = []
         self.locations = []
         self.summons = []
         self.max_fuzzy_distance = max_fuzzy_distance
 
     @retry(times=3, interval=[1, 5, 10])
-    def download_url(self, url):
+    def download_url(self, url: str):
         """
         Given a URL, download the contents from it and return the response. If
         the download fails for any reason, this will retry up to 3 times before
@@ -52,9 +52,9 @@ class Database:
             # Cards do not appear to have a "released" flag, so I am inferring
             # that it is released by checking if it has a source and it is not
             # a token. This may need to be updated for a better way to determine
-            released = '1'
+            released = True
             if is_token == '0' and source == 'None':
-                released = '0'
+                released = False
 
             # NOTE: this also contains a "connected_cards" field which will connect
             #       cards together. For instance, "Space Stone" lists "Thanos" as a
@@ -96,7 +96,7 @@ class Database:
         """
         self.update_card_database_marvelsnappro()
     
-    def search(self, query):
+    def search(self, query: str):
         """
         Loop through all cards and find the closest match, if multiple cards have
         the same closest match, fetch them all. This is to allow linked cards

@@ -1,0 +1,9 @@
+name: Test Project
+run-name: ${{ github.actor }} is testing project
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v2
+            - name: Run tests
+              run: python -m unittest discover tests/

@@ -4,8 +4,8 @@ import datetime
 import logging
 
 from database import Database
-from reddit_connet import RedditConnect
-from comment_parser import CommentParser
+from reddit_connect import RedditConnect
+from comments import CommentParser
 
 logging.basicConfig(
     format='%(asctime)s %(levelname)-8s %(message)s',
@@ -18,7 +18,7 @@ if __name__ == '__main__':
 
     # Variables, these can be moved to either ENV or CLI arguments
     subreddit = 'MarvelSnap'
-    config_file = 'config.json'
+    config_file = '../config.json'
     database_update_timeout = 60*60*24
 
     database = Database()
@@ -28,6 +28,12 @@ if __name__ == '__main__':
     logging.info('Loading card lookup database')
     database.update_card_database()
     last_database_update = datetime.datetime.now()
+
+    for card in database.search('wolverine'):
+        print(card)
+
+    import sys
+    sys.exit(0)
 
     logging.info('Establishing Reddit connection (' + subreddit + ')')
     reddit_connect = RedditConnect(subreddit, config_file)

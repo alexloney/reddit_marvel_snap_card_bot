@@ -1,4 +1,4 @@
-from lookup import Lookup
+from . import Lookup
 
 class Entry(Lookup):
     def __init__(self, name, ability, released, url):
