@@ -20,4 +20,6 @@ Things still left to do:
 * Investigate Heroku as a hosting service
 * Add unit test coverage for components that may be tested (e.g. reddit and Snap API can't really be tested, but other functionality may)
 * Obtain approval from /r/MarvelSnap moderators to allow the bot to operate
+* Add Github CI/CD support for unit test coverage on each commit
+* Investigate deployment strategies, if using Docker it's possible to have Github CI/CD generate a Docker container that may then be pulled and redeployed upon changes. In the case of Heroku, I'll need to look further into how deployment operates there
 
