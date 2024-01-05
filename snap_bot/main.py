@@ -28,7 +28,7 @@ if __name__ == '__main__':
     subreddit = ''
     config_file = ''
     db_update_timeout = 60*60*24
-    reply_timeout = 10
+    reply_timeout = 0
     max_fuzzy_distance = 2
     dry_run = False
     debug = False
@@ -229,7 +229,9 @@ if __name__ == '__main__':
                             reddit_connect.add_reply(comment.id, response)
                         
                         logging.info('Sleeping for ' + str(reply_timeout) + 's')
-                        time.sleep(reply_timeout)
+                        
+                        if reply_timeout > 0:
+                            time.sleep(reply_timeout)
                     else:
                         logging.info('Ignoring comment, bot reply detected')
                         
