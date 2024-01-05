@@ -138,6 +138,17 @@ if __name__ == '__main__':
     reddit_username = args.reddit_username
     reddit_password = args.reddit_password
 
+    logging.info('Subreddit: ' + subreddit)
+    logging.info('Config File: ' + config_file)
+    logging.info('DB Update Timeout: ' + str(db_update_timeout))
+    logging.info('Reply Timeout: ' + str(reply_timeout))
+    logging.info('Max Fuzzing Distance: ' + str(max_fuzzy_distance))
+    logging.info('Dry Run: ' + str(dry_run))
+    logging.info('Debug: ' + str(debug))
+    logging.info('Client ID: ' + client_id)
+    logging.info('User Agent: ' + user_agent)
+    logging.info('Reddit Username: ' + reddit_username)
+
     if debug:
         logging.getLogger("").setLevel(logging.DEBUG)
         logging.debug('Debug logging enabled')

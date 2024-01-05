@@ -33,11 +33,11 @@ Here are some example snippets to use this
 docker pull ghcr.io/alexloney/reddit_marvel_snap_card_bot:latest
 docker run --name reddit_marvel_snap_card_bot \
     --restart unless-stopped \
-    -e SUBREDDIT='MarvelSnap' \
-    -e CLIENT_ID='xxx' \
-    -e CLIENT_SECRET='xxx' \
-    -e USER_AGENT='xxx' \
-    -e REDDIT_USERNAME='xxx' \
-    -e REDDIT_PASSWORD='xxx' \
+    -e SUBREDDIT="MarvelSnap" \
+    -e CLIENT_ID="xxx" \
+    -e CLIENT_SECRET="xxx" \
+    -e USER_AGENT="xxx" \
+    -e REDDIT_USERNAME="xxx" \
+    -e REDDIT_PASSWORD="xxx" \
     ghcr.io/alexloney/reddit_marvel_snap_card_bot:latest
 ```
