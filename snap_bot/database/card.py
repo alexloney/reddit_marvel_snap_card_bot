@@ -28,6 +28,9 @@ class Card(Entry):
         return response
 
     def __eq__(self, other):
+        """
+        Equality operator for compairing cards
+        """
         return self.name == other.name and \
                self.cost == other.cost and \
                self.power == other.power and \

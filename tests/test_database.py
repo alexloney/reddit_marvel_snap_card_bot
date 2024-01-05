@@ -5,6 +5,7 @@ sys.path.append('../snap_bot')
 sys.path.append('snap_bot')
 from database import Database
 from database import Card
+from database import Location
 
 class TestDatabase(unittest.TestCase):
     @classmethod
@@ -95,6 +96,17 @@ class TestDatabase(unittest.TestCase):
             Card('Nico Minoru', '1', '2', '<b>On Reveal:</b> After you play your next card, add a copy of it to your hand.', True, 'https://marvelsnap.pro/cards/spell06nicominoru'),
             Card('Nico Minoru', '1', '2', '<b>On Reveal:</b> After you play your next card, double this card\'s Power.', True, 'https://marvelsnap.pro/cards/spell07nicominoru')
             ]
+
+        self.assertEqual(len(expected_results), len(result))
+        for i in range(0, len(result)):
+            self.assertEqual(expected_results[i], result[i])
+
+    def test_location_search(self):
+        """
+        Test to ensure that a location may be searched
+        """
+        result = self.database.search('Altar of Death')
+        expected_results = [Location('Altar of Death', 'After you play a card here, destroy it to get +2 Energy next turn.', 'Rare', True, 'https://marvelsnap.pro/cards/altarofdeath')]
 
         self.assertEqual(len(expected_results), len(result))
         for i in range(0, len(result)):

@@ -22,3 +22,13 @@ class Location(Entry):
         response += '\n\n'
 
         return response
+
+    def __eq__(self, other):
+        """
+        Equality operator for comparing locations
+        """
+        return self.name == other.name and \
+               self.ability == other.ability and \
+               self.rarity == other.rarity and \
+               self.released == other.released and \
+               self.url == other.url
