@@ -29,7 +29,8 @@ if __name__ == '__main__':
     database.update_card_database()
     last_database_update = datetime.datetime.now()
 
-    reddit_connect = RedditConnect('MarvelSnap', 'config.json')
+    logging.info('Establishing Reddit connection (' + subreddit + ')')
+    reddit_connect = RedditConnect(subreddit, config_file)
 
     # Continue forever...or untill killed
     try:
