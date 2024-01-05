@@ -17,8 +17,8 @@ class Location(Entry):
             response += '**\[' + self.name + '\]** '
         if self.released == False:
             response += '(Unreleased) '
-        response += '**Location:** Rarity ' + self.rarity + '  '
-        response += 'Description:** ' + self.ability
+        response += '**Location:** Rarity ' + self.rarity + '  \n'
+        response += '**Description:** ' + self.ability
         response += '\n\n'
 
         return response

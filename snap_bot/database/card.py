@@ -21,7 +21,7 @@ class Card(Entry):
         if self.released == False:
             response += '(Unreleased) '
         response += '**Cost:** ' + str(self.cost) + ' '
-        response += '**Power:** ' + str(self.power) + '  '
+        response += '**Power:** ' + str(self.power) + '  \n'
         response += '**Ability:** ' + self.formatted_ability
         response += '\n\n'
 

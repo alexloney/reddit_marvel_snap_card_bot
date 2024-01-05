@@ -11,7 +11,7 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "justMyCode": true,
-            "args": ["--subreddit", "driagan_test", "--config-file", "config.json", "--dry-run"]
+            "args": ["--subreddit", "driagan_test", "--config-file", "config.json"]
         }
     ]
 }

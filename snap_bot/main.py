@@ -192,6 +192,11 @@ if __name__ == '__main__':
             # Fetch the next set of comments
             for comment in reddit_connect.get_comments_shallow():
 
+                # Prevent replying to my own comments, if the author of the
+                # comment is the bot itself, then simply ignore the comment
+                if reddit_connect.get_my_username() == comment.author:
+                    continue
+
                 # Parse the comment and fetch the card names from it
                 parser = CommentParser(comment)
                 card_names = parser.parse()
@@ -219,11 +224,14 @@ if __name__ == '__main__':
                     authors = reddit_connect.get_comment_reply_author_names(comment.id)
                     if reddit_connect.get_my_username() not in authors:
                         logging.info('Submitting reply')
+                        logging.debug(response)
                         if dry_run == False:
                             reddit_connect.add_reply(comment.id, response)
                         
                         logging.info('Sleeping for ' + str(reply_timeout) + 's')
                         time.sleep(reply_timeout)
+                    else:
+                        logging.info('Ignoring comment, bot reply detected')
                         
 
     except KeyboardInterrupt:

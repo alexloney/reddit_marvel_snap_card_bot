@@ -15,7 +15,7 @@ class TestCommentParser(unittest.TestCase):
         card.format_ability_from_html()
 
         card_text = str(card)
-        expected_card_text = r'**\[[Wolverine](https://marvelsnap.pro/cards/wolverine)\]** **Cost:** 2 **Power:** 2  **Ability:** When this is discarded or destroyed, regenerate it with +2 Power at a random location.' + '\n\n'
+        expected_card_text = r'**\[[Wolverine](https://marvelsnap.pro/cards/wolverine)\]** **Cost:** 2 **Power:** 2  ' + '\n' + r'**Ability:** When this is discarded or destroyed, regenerate it with +2 Power at a random location.' + '\n\n'
 
         self.assertEqual(expected_card_text, card_text)
     
@@ -28,7 +28,7 @@ class TestCommentParser(unittest.TestCase):
         card.format_ability_from_html()
 
         card_text = str(card)
-        expected_card_text = r'**\[[Nico Minoru](https://marvelsnap.pro/cards/nicominoru)\]** **Cost:** 1 **Power:** 2  **Ability:** **On Reveal:** After you play your next card, cast a spell. *(The spell changes each turn.)*' + '\n\n'
+        expected_card_text = r'**\[[Nico Minoru](https://marvelsnap.pro/cards/nicominoru)\]** **Cost:** 1 **Power:** 2  ' + '\n' + r'**Ability:** **On Reveal:** After you play your next card, cast a spell. *(The spell changes each turn.)*' + '\n\n'
 
         self.assertEqual(expected_card_text, card_text)
         
@@ -40,7 +40,7 @@ class TestCommentParser(unittest.TestCase):
         card.format_ability_from_html()
 
         card_text = str(card)
-        expected_card_text = r'**\[[Wolverine](https://marvelsnap.pro/cards/wolverine)\]** (Unreleased) **Cost:** 2 **Power:** 2  **Ability:** When this is discarded or destroyed, regenerate it with +2 Power at a random location.' + '\n\n'
+        expected_card_text = r'**\[[Wolverine](https://marvelsnap.pro/cards/wolverine)\]** (Unreleased) **Cost:** 2 **Power:** 2  ' + '\n' + r'**Ability:** When this is discarded or destroyed, regenerate it with +2 Power at a random location.' + '\n\n'
 
         self.assertEqual(expected_card_text, card_text)
 

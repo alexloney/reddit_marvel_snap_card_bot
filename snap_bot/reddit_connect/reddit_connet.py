@@ -61,7 +61,7 @@ class RedditConnect:
             count += 1
             if comment.id not in self.seen_comments:
                 self.seen_comments.append(comment.id)
-                comments.append(Comment(comment.id, comment.body, 'https://reddit.com' + comment.permalink))
+                comments.append(Comment(comment.id, comment.author.name, comment.body, 'https://reddit.com' + comment.permalink))
         
         # To prevent this list from simply growing to an unmanagable size, we
         # will simply remove old entries when it has more than 150, since the

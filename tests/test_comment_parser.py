@@ -12,7 +12,7 @@ class TestCommentParser(unittest.TestCase):
         Test to ensure a comment with no tags is properly parsed and returns no
         tags.
         """
-        comment = Comment('1', 'This is a test body with NO TAGS', 'http://example.com')
+        comment = Comment('1', 'author', 'This is a test body with NO TAGS', 'http://example.com')
         parser = CommentParser(comment)
         results = parser.parse()
 
@@ -24,7 +24,7 @@ class TestCommentParser(unittest.TestCase):
         Test to ensure a comment with one tag is properly parsed and returns
         just the one tag
         """
-        comment = Comment('1', 'This is a test [[odin]] body with one tag', 'http://example.com')
+        comment = Comment('1', 'author', 'This is a test [[odin]] body with one tag', 'http://example.com')
         parser = CommentParser(comment)
         results = parser.parse()
 
@@ -36,7 +36,7 @@ class TestCommentParser(unittest.TestCase):
         Test to ensure a comment with two tags is properly parsed and returns
         both tags
         """
-        comment = Comment('1', 'This is a test [[odin]] body [[loki]] with two tags', 'http://example.com')
+        comment = Comment('1', 'author', 'This is a test [[odin]] body [[loki]] with two tags', 'http://example.com')
         parser = CommentParser(comment)
         results = parser.parse()
 
@@ -48,7 +48,7 @@ class TestCommentParser(unittest.TestCase):
         Test to ensure a comment with inproperly aligned tag endings returns
         as expected
         """
-        comment = Comment('1', 'This is a test [[odin] body with one tag', 'http://example.com')
+        comment = Comment('1', 'author', 'This is a test [[odin] body with one tag', 'http://example.com')
         parser = CommentParser(comment)
         results = parser.parse()
 
@@ -60,7 +60,7 @@ class TestCommentParser(unittest.TestCase):
         Test to ensure a comment with inproperly aligned tag beginnings returns
         as expected
         """
-        comment = Comment('1', 'This is a test [odin]] body with one tag', 'http://example.com')
+        comment = Comment('1', 'author', 'This is a test [odin]] body with one tag', 'http://example.com')
         parser = CommentParser(comment)
         results = parser.parse()
 
@@ -72,7 +72,7 @@ class TestCommentParser(unittest.TestCase):
         Test to ensure a comment with inproperly aligned tag beginnings returns
         as expected
         """
-        comment = Comment('1', 'This is a test [ [odin]] body with one tag', 'http://example.com')
+        comment = Comment('1', 'author', 'This is a test [ [odin]] body with one tag', 'http://example.com')
         parser = CommentParser(comment)
         results = parser.parse()
 
@@ -83,7 +83,7 @@ class TestCommentParser(unittest.TestCase):
         """
         Test to ensure a comment with tag at the start returns correctly
         """
-        comment = Comment('1', '[[odin]] This is a test body with one tag', 'http://example.com')
+        comment = Comment('1', 'author', '[[odin]] This is a test body with one tag', 'http://example.com')
         parser = CommentParser(comment)
         results = parser.parse()
 
@@ -94,7 +94,7 @@ class TestCommentParser(unittest.TestCase):
         """
         Test to ensure a comment with tag at the end returns correctly
         """
-        comment = Comment('1', 'This is a test body with one tag [[odin]]', 'http://example.com')
+        comment = Comment('1', 'author', 'This is a test body with one tag [[odin]]', 'http://example.com')
         parser = CommentParser(comment)
         results = parser.parse()
 
@@ -105,7 +105,7 @@ class TestCommentParser(unittest.TestCase):
         """
         Test to ensure a comment with tag at the end returns correctly
         """
-        comment = Comment('1', r'This is a test \\[\\[odin\\]\\] body with one tag', 'http://example.com')
+        comment = Comment('1', 'author', r'This is a test \\[\\[odin\\]\\] body with one tag', 'http://example.com')
         parser = CommentParser(comment)
         results = parser.parse()
 
