@@ -1,5 +1,6 @@
 name: Test Project
 run-name: ${{ github.actor }} is testing project
+on: [push]
 jobs:
     build:
         runs-on: ubuntu-latest
