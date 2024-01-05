@@ -25,3 +25,19 @@ Things still left to do:
 * Obtain approval from /r/MarvelSnap moderators to allow the bot to operate
 * Investigate deployment strategies, if using Docker it's possible to have Github CI/CD generate a Docker container that may then be pulled and redeployed upon changes. In the case of Heroku, I'll need to look further into how deployment operates there
 
+## Usage
+Here are some example snippets to use this
+
+### Docker CLI
+```bash
+docker pull ghcr.io/alexloney/reddit_marvel_snap_card_bot:latest
+docker run --name reddit_marvel_snap_card_bot \
+    --restart unless-stopped \
+    -e SUBREDDIT='MarvelSnap' \
+    -e CLIENT_ID='xxx' \
+    -e CLIENT_SECRET='xxx' \
+    -e USER_AGENT='xxx' \
+    -e REDDIT_USERNAME='xxx' \
+    -e REDDIT_PASSWORD='xxx' \
+    ghcr.io/alexloney/reddit_marvel_snap_card_bot:latest
+```
