@@ -105,7 +105,7 @@ if __name__ == '__main__':
         help='Reddit application client secret (env: CLIENT_SECRET)')
     parser.add_argument(
         '--user-agent',
-        default=client_secret,
+        default=user_agent,
         help='Reddit application user agent (env: USER_AGENT)')
     parser.add_argument(
         '--reddit-username',
