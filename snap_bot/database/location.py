@@ -9,19 +9,15 @@ class Location(Entry):
         """
         Format a location response in a nice way that may be used on Reddit
         """
-        response = ''
+        template = r'**\[[{name}]({url})\]** {status}**Location:** Rarity {rarity}  \n**Description:** {ability}\n\n'
+        template = template.replace(r'\n', '\n')
 
-        if self.url is not None:
-            response += '**\[[' + self.name + '](' + self.url + ')\]** '
-        else:
-            response += '**\[' + self.name + '\]** '
-        if self.released == False:
-            response += '(Unreleased) '
-        response += '**Location:** Rarity ' + self.rarity + '  \n'
-        response += '**Description:** ' + self.ability
-        response += '\n\n'
-
-        return response
+        return template.format(
+            name = self.name,
+            url = self.url,
+            status = ('(Unreleased) ' if not self.released else ''),
+            rarity = self.rarity,
+            ability = self.ability)
 
     def __eq__(self, other):
         """

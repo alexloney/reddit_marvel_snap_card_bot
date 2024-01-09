@@ -28,7 +28,6 @@ if __name__ == '__main__':
     subreddit = ''
     config_file = ''
     db_update_timeout = 60*60*24
-    reply_timeout = 0
     max_fuzzy_distance = 2
     dry_run = False
     debug = False
@@ -44,8 +43,6 @@ if __name__ == '__main__':
         config_file = os.environ.get('CONFIG_FILE')
     if os.environ.get('DB_TIMEOUT') is not None:
         db_update_timeout = int(os.environ.get('DB_TIMEOUT'))
-    if os.environ.get('REPLY_TIMEOUT') is not None:
-        reply_timeout = int(os.environ.get('REPLY_TIMEOUT'))
     if os.environ.get('MAX_FUZZY_DISTANCE') is not None:
         max_fuzzy_distance = int(os.environ.get('MAX_FUZZY_DISTANCE'))
     if os.environ.get('DRY_RUN') is not None:
@@ -74,7 +71,7 @@ if __name__ == '__main__':
         '--subreddit', 
         '-s', 
         default=subreddit,
-        help='Subreddit to monitor comments from (env: SUBREDDIT)')
+        help='Subreddit to monitor comments from, use \'+\' to monitor multiple at the same time (env: SUBREDDIT)')
     parser.add_argument(
         '--config-file',
         '-c',
@@ -85,10 +82,6 @@ if __name__ == '__main__':
         '-u',
         default=db_update_timeout,
         help='Delay (in seconds) between database refresh (env: DB_TIMEOUT)')
-    parser.add_argument(
-        '--reply-timeout',
-        default=reply_timeout,
-        help='Delay (in seconds) between replies (env: REPLY_TIMEOUT)')
     parser.add_argument(
         '--max-fuzzy-distance',
         default=max_fuzzy_distance,
@@ -128,7 +121,6 @@ if __name__ == '__main__':
     subreddit = args.subreddit
     config_file = args.config_file
     db_update_timeout = args.database_update_timeout
-    reply_timeout = args.reply_timeout
     max_fuzzy_distance = args.max_fuzzy_distance
     dry_run = args.dry_run
     debug = args.debug
@@ -141,7 +133,6 @@ if __name__ == '__main__':
     logging.info('Subreddit: ' + subreddit)
     logging.info('Config File: ' + config_file)
     logging.info('DB Update Timeout: ' + str(db_update_timeout))
-    logging.info('Reply Timeout: ' + str(reply_timeout))
     logging.info('Max Fuzzing Distance: ' + str(max_fuzzy_distance))
     logging.info('Dry Run: ' + str(dry_run))
     logging.info('Debug: ' + str(debug))
@@ -238,11 +229,6 @@ if __name__ == '__main__':
                         logging.debug(response)
                         if dry_run == False:
                             reddit_connect.add_reply(comment.id, response)
-                        
-                        logging.info('Sleeping for ' + str(reply_timeout) + 's')
-
-                        if reply_timeout > 0:
-                            time.sleep(reply_timeout)
                     else:
                         logging.info('Ignoring comment, bot reply detected')
                         

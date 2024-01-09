@@ -1,12 +1,13 @@
 import praw
 import json
 
+from wells.utils import retry
+
 from comments import Comment
 
 class RedditConnect:
     def __init__(self, subreddit: str):
         self.subreddit_name = subreddit
-        self.username = ''
         self.seen_comments = []
 
     def get_my_username(self):
@@ -15,7 +16,7 @@ class RedditConnect:
         extra query here to Reddit since we know the username from the config
         file, so instead we will just use what we logged in with.
         """
-        return self.username
+        return self.reddit.user.me().name
     
     def init_reddit_config(self, config_file: str):
         """
@@ -44,9 +45,8 @@ class RedditConnect:
             user_agent = user_agent)
 
         self.subreddit = self.reddit.subreddit(self.subreddit_name)
-
-        self.username = username
     
+    @retry(times=3, interval=[1, 5, 10])
     def get_comments_shallow(self):
         """
         Get a list of comments, these may repeat as it pulls the last 100 comments
@@ -83,6 +83,7 @@ class RedditConnect:
 
         return authors
 
+    @retry(times=3, interval=[1, 5, 10])
     def add_reply(self, comment_id: str, reply_text: str):
         """
         Load a specific comment by ID and submit a reply to it

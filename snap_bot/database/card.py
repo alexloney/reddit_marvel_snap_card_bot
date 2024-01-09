@@ -12,20 +12,16 @@ class Card(Entry):
         Combone the fields in this class into a single output that may be
         displayed with correct formatting
         """
-        response = ''
+        template = r'**\[[{name}]({url})\]** {status}**Cost:** {cost} **Power:** {power}  \n**Ability:** {ability}\n\n'
+        template = template.replace(r'\n', '\n')
 
-        if self.url is not None:
-            response += '**\[[' + self.name + '](' + self.url + ')\]** '
-        else:
-            response += '**\[' + self.name + '\]** '
-        if self.released == False:
-            response += '(Unreleased) '
-        response += '**Cost:** ' + str(self.cost) + ' '
-        response += '**Power:** ' + str(self.power) + '  \n'
-        response += '**Ability:** ' + self.formatted_ability
-        response += '\n\n'
-
-        return response
+        return template.format(
+            name = self.name,
+            url = self.url,
+            status = ('(Unreleased) ' if not self.released else ''),
+            cost = self.cost,
+            power = self.power,
+            ability = self.formatted_ability)
 
     def __eq__(self, other):
         """

@@ -13,7 +13,7 @@ class TestCommentParser(unittest.TestCase):
         location = Location('Altar of Death', 'After you play a card here, destroy it to get +2 Energy next turn.', 'Rare', True, 'https://marvelsnap.pro/cards/altarofdeath')
         location_text = str(location)
         
-        expected_location_text = r'**\[[Altar of Death](https://marvelsnap.pro/cards/altarofdeath)\]** **Location:** Rarity Rare  ' + '\n' + r'**Description:** After you play a card here, destroy it to get +2 Energy next turn.' + '\n\n'
+        expected_location_text = r'**\[[Altar of Death](https://marvelsnap.pro/cards/altarofdeath)\]** **Location:** Rarity Rare' + '  \n' + r'**Description:** After you play a card here, destroy it to get +2 Energy next turn.' + '\n\n'
 
         self.assertEqual(expected_location_text, location_text)
 
@@ -24,7 +24,7 @@ class TestCommentParser(unittest.TestCase):
         location = Location('Altar of Death', 'After you play a card here, destroy it to get +2 Energy next turn.', 'Rare', False, 'https://marvelsnap.pro/cards/altarofdeath')
         location_text = str(location)
         
-        expected_location_text = r'**\[[Altar of Death](https://marvelsnap.pro/cards/altarofdeath)\]** (Unreleased) **Location:** Rarity Rare  ' + '\n' + r'**Description:** After you play a card here, destroy it to get +2 Energy next turn.' + '\n\n'
+        expected_location_text = r'**\[[Altar of Death](https://marvelsnap.pro/cards/altarofdeath)\]** (Unreleased) **Location:** Rarity Rare' + '  \n' + r'**Description:** After you play a card here, destroy it to get +2 Energy next turn.' + '\n\n'
 
         self.assertEqual(expected_location_text, location_text)
 
