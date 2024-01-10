@@ -111,6 +111,43 @@ class TestDatabase(unittest.TestCase):
         self.assertEqual(len(expected_results), len(result))
         for i in range(0, len(result)):
             self.assertEqual(expected_results[i], result[i])
+    
+    def test_card_partial_search(self):
+        """
+        Test that a card may be searched via a partial name, such that we
+        do not need to supply the full name with spaces for it to be found
+        """
+        result = self.database.search('hope')
+        expected_results = [Card('Hope Summers', '3', '3', 'After you play a card here, you get +2 Energy next turn.', False, 'https://marvelsnap.pro/cards/hopesummers')]
+        
+        self.assertEqual(len(expected_results), len(result))
+        for i in range(0, len(result)):
+            self.assertEqual(expected_results[i], result[i])
+
+    def test_card_partial_search_not_found(self):
+        """
+        Test that a card with too small of a search value will not be found.
+        In this specific example, I'm searching for "M" and expecting it to
+        NOT match to "Mobius M. Mobius"
+        """
+        result = self.database.search('m')
+        expected_results = []
+
+        self.assertEqual(len(expected_results), len(result))
+        for i in range(0, len(result)):
+            self.assertEqual(expected_results[i], result[i])
+
+    def test_card_partial_search_not_found(self):
+        """
+        Test that we can find "Mobius" from the above search by specifying
+        a partial of the name (e.g. "Mobius")
+        """
+        result = self.database.search('Mobius')
+        expected_results = [Card('Mobius M. Mobius', '3', '3', '<b>Ongoing:</b> Your Costs can\'t be increased. Your opponent\'s Costs can\'t be reduced.', True, 'https://marvelsnap.pro/cards/mobiusmmobius')]
+
+        self.assertEqual(len(expected_results), len(result))
+        for i in range(0, len(result)):
+            self.assertEqual(expected_results[i], result[i])
 
 if __name__ == '__main__':
     unittest.main()

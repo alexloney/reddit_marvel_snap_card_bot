@@ -29,6 +29,7 @@ if __name__ == '__main__':
     config_file = ''
     db_update_timeout = 60*60*24
     max_fuzzy_distance = 2
+    exact_match_threshold = 3
     dry_run = False
     debug = False
     client_id = ''
@@ -45,6 +46,8 @@ if __name__ == '__main__':
         db_update_timeout = int(os.environ.get('DB_TIMEOUT'))
     if os.environ.get('MAX_FUZZY_DISTANCE') is not None:
         max_fuzzy_distance = int(os.environ.get('MAX_FUZZY_DISTANCE'))
+    if os.environ.get('EXACT_MATCH_THRESHOLD') is not None:
+        exact_match_threshold = int(os.environ.get('EXACT_MATCH_THRESHOLD'))
     if os.environ.get('DRY_RUN') is not None:
         if os.environ.get('DRY_RUN').lower() == 'true':
             dry_run = True
@@ -87,6 +90,10 @@ if __name__ == '__main__':
         default=max_fuzzy_distance,
         help='Allowed distance between search and match (env: MAX_FUZZY_DISTANCE)')
     parser.add_argument(
+        '--exact-match-threshold',
+        default=exact_match_threshold,
+        help='Minimum string length required for an exact match to be made (env: EXACT_MATCH_THRESHOLD)')
+    parser.add_argument(
         '--dry-run',
         action='store_true',
         help='Run but do not actually post to Reddit (env: DRY_RUN)')
@@ -122,6 +129,7 @@ if __name__ == '__main__':
     config_file = args.config_file
     db_update_timeout = args.database_update_timeout
     max_fuzzy_distance = args.max_fuzzy_distance
+    exact_match_threshold = args.exact_match_threshold
     dry_run = args.dry_run
     debug = args.debug
     client_id = args.client_id
@@ -134,6 +142,7 @@ if __name__ == '__main__':
     logging.info('Config File: ' + config_file)
     logging.info('DB Update Timeout: ' + str(db_update_timeout))
     logging.info('Max Fuzzing Distance: ' + str(max_fuzzy_distance))
+    logging.info('Exact Match Threshold: ' + str(exact_match_threshold))
     logging.info('Dry Run: ' + str(dry_run))
     logging.info('Debug: ' + str(debug))
     logging.info('Client ID: ' + client_id)
@@ -157,7 +166,7 @@ if __name__ == '__main__':
         print('Error: You must provide a subreddit to monitor')
         sys.exit(1)
 
-    database = Database(max_fuzzy_distance)
+    database = Database(max_fuzzy_distance, exact_match_threshold)
 
     # Perform our initial database update to get the first version of our card
     # lookups

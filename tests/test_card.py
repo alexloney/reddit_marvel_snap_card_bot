@@ -34,7 +34,7 @@ class TestCommentParser(unittest.TestCase):
         
     def test_card_text_generation(self):
         """
-        Test that a card makred as unreleased includes the appropriate tag
+        Test that a card marked as unreleased includes the appropriate tag
         """
         card = Card('Wolverine', '2', '2', 'When this is discarded or destroyed, regenerate it with +2 Power at a random location.', False, 'https://marvelsnap.pro/cards/wolverine')
         card.format_ability_from_html()

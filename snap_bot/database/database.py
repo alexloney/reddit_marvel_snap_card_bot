@@ -5,11 +5,12 @@ from . import Card
 from . import Location
 
 class Database:
-    def __init__(self, max_fuzzy_distance: int = 2):
+    def __init__(self, max_fuzzy_distance: int = 2, exact_match_threshold: int = 3):
         self.cards = []
         self.locations = []
         self.summons = []
         self.max_fuzzy_distance = max_fuzzy_distance
+        self.exact_match_threshold = exact_match_threshold
 
     @retry(times=3, interval=[1, 5, 10])
     def download_url(self, url: str):
@@ -113,7 +114,7 @@ class Database:
         # Always check cards first, so that the base card will be at the top of
         # the response
         for card in self.cards:
-            next_match_score = card.test_distance(query)
+            next_match_score = card.test_distance_splits(query)
             if next_match_score < best_match_score:
                 best_match_score = next_match_score
                 best_match = [card]
@@ -123,7 +124,7 @@ class Database:
         # Next check the Summons so that the summon will be listed second after
         # the card
         for summon in self.summons:
-            next_match_score = summon.test_distance(query)
+            next_match_score = summon.test_distance_splits(query)
             if next_match_score < best_match_score:
                 best_match_score = next_match_score
                 best_match = [summon]
@@ -131,15 +132,30 @@ class Database:
                 best_match.append(summon)
         
         for location in self.locations:
-            next_match_score = location.test_distance(query)
+            next_match_score = location.test_distance_splits(query)
             if next_match_score < best_match_score:
                 best_match_score = next_match_score
                 best_match = [location]
             elif next_match_score == best_match_score:
                 best_match.append(location)
 
+        # Consolidate the resulting searches together and return the output.
+        # We have a few cases here:
+        #  1. If the query string is too small, we want for it to have found
+        #     an exact match. This is to prevent a single letter like 'm' from
+        #     matching to "Gym" in "Maxwells Gym", for example
+        #  2. Next, we will check the score to our minimum fuzzy match score
+        #     required. If the score is equal to or better than the minimum
+        #     allowed, return it.
+        #  3. Finally, if the match is not good enough for the above, we will
+        #     return no result.
+
         # Check to see if our best match is within the threshold for matches,
         # if so we will output it. If it is not, we will return an empty response
+        if len(query) <= self.exact_match_threshold and best_match_score != 0:
+            return []
+        
         if best_match_score <= self.max_fuzzy_distance:
             return best_match
+        
         return []
