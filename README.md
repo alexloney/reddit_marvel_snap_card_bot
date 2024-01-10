@@ -18,10 +18,10 @@ This bot is intended to mostly provide the same functionality as the original
 * Dry-Run mode - Run without actually replying, great for testing
 * Unit test coverage - Many components have unit test coverage
 * CI/CD coverage - Unit tests are executed with every push to CI/CD environment
+* Partial search supported - Card names do not need to be the full name, for example "Mobius" can be used to search for "Mobius M. Mobius"
 
 Things still left to do:
-* Obtain approval from /r/MarvelSnap moderators to allow the bot to operate
-* Implement partial search, so a way for "Mobius" to match to "Mobius M. Mobius" or "Nico" to match to "Nico Minoru", as it is not really intuitive to have to type "Mobius M. Mobius" for a card that everyone simply refers to as "Mobius". I suspect that this may be done by taking the original card name, splitting on spaces, and creating a list of other partial names that may be used.
+* Obtain approval from /r/MarvelSnap moderators to allow the bot to operate - I've sent two messages to the /r/MarvelSnap moderators, awaiting response.
 
 ## Usage
 Here are some example snippets to use this
