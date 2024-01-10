@@ -37,5 +37,6 @@ docker run --name reddit_marvel_snap_card_bot \
     -e USER_AGENT="xxx" \
     -e REDDIT_USERNAME="xxx" \
     -e REDDIT_PASSWORD="xxx" \
+    -e TZ="America/Los_Angeles" \
     ghcr.io/alexloney/reddit_marvel_snap_card_bot:latest
 ```
