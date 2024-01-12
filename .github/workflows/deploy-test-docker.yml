@@ -3,12 +3,11 @@ run-name: ${{ github.actor }} is building Docker container
 on:
   workflow_run:
     workflows: ["Test Project"]
-    branches: [test]
     types:
       - completed
   push:
     branches:
-      - test
+      - '!main'
 jobs:
   deploy:
     runs-on: ubuntu-latest
