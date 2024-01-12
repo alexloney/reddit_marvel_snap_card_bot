@@ -10,6 +10,7 @@ import time
 from database import Database
 from reddit_connect import RedditConnect
 from comments import CommentParser
+import utils
 
 logging.basicConfig(
     format='%(asctime)s %(levelname)-8s %(message)s',
@@ -212,13 +213,20 @@ if __name__ == '__main__':
                 parser = CommentParser(comment)
                 card_names = parser.parse()
 
+                # Match all of the cards then remove duplicates
+                matched_cards = []
+                for name in card_names:
+                    for item in database.search(name):
+                        matched_cards.append(item)
+                unique_cards = utils.remove_duplicate_cards(matched_cards)
+
                 # Generate a response based on the detected card names in the
                 # comment
                 response = ''
-                for name in card_names:
+                for name in unique_cards:
                     for item in database.search(name):
                         response += str(item)
-
+                
                 # If our response has a length, this means we identified a card
                 # request and correctly matched it to a card to reply with. If
                 # that is the case, we may proceed with the request
