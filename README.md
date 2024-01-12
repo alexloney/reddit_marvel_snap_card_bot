@@ -40,7 +40,6 @@ The following are the features that this bot offers:
 ## TODO
 
 Here are features that I am considering for changes/additons to the bot:
-* Obtain approval from /r/MarvelSnap moderators to allow the bot to operate - I've sent two messages to the /r/MarvelSnap moderators, awaiting response.
 * Since it is running from a Docker container and not from any location where it does not have storage access, I am considering enhancing this to use a SQLite database for storing card details as well as details on the comments it has already seen.
 
 ## Deployment
