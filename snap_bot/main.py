@@ -220,12 +220,11 @@ if __name__ == '__main__':
                         matched_cards.append(item)
                 unique_cards = utils.remove_duplicate_cards(matched_cards)
 
-                # Generate a response based on the detected card names in the
-                # comment
+                # Combine all of the cards from above together into a single
+                # output message
                 response = ''
                 for name in unique_cards:
-                    for item in database.search(name):
-                        response += str(item)
+                    response += str(name)
                 
                 # If our response has a length, this means we identified a card
                 # request and correctly matched it to a card to reply with. If
