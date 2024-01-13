@@ -226,6 +226,28 @@ class TestDatabase(unittest.TestCase):
         ]
 
         self.assertEqual(expected_results, results)
+    
+    def test_ebony_order(self):
+        """
+        I discovered a bug where if you search for "Ebody Blade" or other similar
+        cards, it will return return looking like that is the base card and the
+        card that may summon it is the summon card. This tests to ensure that
+        that situation does not occur.
+        """
+
+        cards = self.database.search('Ebony Blade')
+        cards = utils.remove_duplicate_cards(cards)
+        cards = utils.resolve_tokens_to_base(self.database, cards)
+        cards = utils.remove_duplicate_cards(cards)
+        results = utils.insert_tokens_from_cards(self.database, cards)
+
+        expected_results = [
+            Card('BlackKnight', 'Black Knight', '1', '2', 'After you discard a card, add the Ebony Blade to your hand with that card\'s Power. <i>(once per game)</i>', True, 'https://marvelsnap.pro/cards/blackknight', False, '["EbonyBlade"]', True),
+            Card('EbonyBlade', 'Ebony Blade', '4', '0', '<b>Ongoing:</b> Can\'t be destroyed and its Power can\'t be reduced.', False, 'https://marvelsnap.pro/cards/ebonyblade', True, '["BlackKnight"]', False)
+        ]
+
+        self.assertEqual(expected_results, results)
+
 
 if __name__ == '__main__':
     unittest.main()
