@@ -12,6 +12,7 @@ class Card(Entry):
         self.formatted_ability = ''
         self.summoned = summoned
         self.searchable = True
+        self.matchable = True
 
     def to_constructor_string(self):
         """
