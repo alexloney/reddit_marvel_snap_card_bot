@@ -1,3 +1,5 @@
+import copy
+
 from database import Card
 
 def remove_duplicate_cards(cards):
@@ -51,5 +53,10 @@ def insert_tokens_from_cards(database, cards):
             for j in range(0, len(cards[i].connected_cards)):
                 card = database.search_defid(cards[i].connected_cards[j])
                 if card is not None:
-                    final_cards.append(card)
+                    # Actual deepcopy here since we will be modifying the
+                    # summoned value of this card and don't want to have that
+                    # impact other existing cards.
+                    final_cards.append(copy.deepcopy(card))
+                    final_cards[-1].summoned = True
     return final_cards
+

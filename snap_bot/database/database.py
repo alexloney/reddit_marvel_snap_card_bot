@@ -68,10 +68,10 @@ class Database:
             #       printing additional cards.
 
             if is_token == '1':
-                self.summons.append(Card(def_id, name, cost, power, ability, released, url, True, connected_cards))
+                self.summons.append(Card(def_id, name, cost, power, ability, released, url, True, connected_cards, False))
                 self.summons[-1].format_ability_from_html()
             else:
-                self.cards.append(Card(def_id, name, cost, power, ability, released, url, False, connected_cards))
+                self.cards.append(Card(def_id, name, cost, power, ability, released, url, False, connected_cards, False))
                 self.cards[-1].format_ability_from_html()
 
         data = self.download_url(api_location_url)

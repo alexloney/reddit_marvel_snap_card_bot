@@ -13,27 +13,27 @@ class TestCommentParser(unittest.TestCase):
         duplicates have been removed from the list of cards.
         """
         cards = [
-            Card('Odin', 'Odin', '6', '8', 'On Reveal: Activate the On Reveal abilities of your other cards here.', True, 'https://marvelsnap.pro/cards/odin', False, '[]'),
-            Card('Odin', 'Odin', '6', '8', 'On Reveal: Activate the On Reveal abilities of your other cards here.', True, 'https://marvelsnap.pro/cards/odin', False, '[]'),
-            Card('Odin', 'Odin', '6', '8', 'On Reveal: Activate the On Reveal abilities of your other cards here.', True, 'https://marvelsnap.pro/cards/odin', False, '[]'),
-            Card('Odin', 'Odin', '6', '8', 'On Reveal: Activate the On Reveal abilities of your other cards here.', True, 'https://marvelsnap.pro/cards/odin', False, '[]'),
-            Card('Odin', 'Odin', '6', '8', 'On Reveal: Activate the On Reveal abilities of your other cards here.', True, 'https://marvelsnap.pro/cards/odin', False, '[]'),
-            Card('Odin', 'Odin', '6', '8', 'On Reveal: Activate the On Reveal abilities of your other cards here.', True, 'https://marvelsnap.pro/cards/odin', False, '[]'),
-            Card('Odin', 'Odin', '6', '8', 'On Reveal: Activate the On Reveal abilities of your other cards here.', True, 'https://marvelsnap.pro/cards/odin', False, '[]'),
-            Card('Odin', 'Odin', '6', '8', 'On Reveal: Activate the On Reveal abilities of your other cards here.', True, 'https://marvelsnap.pro/cards/odin', False, '[]'),
-            Card('Wolverine', 'Wolverine', '2', '2', 'When this is discarded or destroyed, regenerate it with +2 Power at a random location.', True, 'https://marvelsnap.pro/cards/wolverine', False, '[]'),
-            Card('Wolverine', 'Wolverine', '2', '2', 'When this is discarded or destroyed, regenerate it with +2 Power at a random location.', True, 'https://marvelsnap.pro/cards/wolverine', False, '[]'),
-            Card('Wolverine', 'Wolverine', '2', '2', 'When this is discarded or destroyed, regenerate it with +2 Power at a random location.', True, 'https://marvelsnap.pro/cards/wolverine', False, '[]'),
-            Card('Wolverine', 'Wolverine', '2', '2', 'When this is discarded or destroyed, regenerate it with +2 Power at a random location.', True, 'https://marvelsnap.pro/cards/wolverine', False, '[]'),
-            Card('Wolverine', 'Wolverine', '2', '2', 'When this is discarded or destroyed, regenerate it with +2 Power at a random location.', True, 'https://marvelsnap.pro/cards/wolverine', False, '[]'),
-            Card('Odin', 'Odin', '6', '8', 'On Reveal: Activate the On Reveal abilities of your other cards here.', True, 'https://marvelsnap.pro/cards/odin', False, '[]'),
-            Card('Odin', 'Odin', '6', '8', 'On Reveal: Activate the On Reveal abilities of your other cards here.', True, 'https://marvelsnap.pro/cards/odin', False, '[]')
+            Card('Odin', 'Odin', '6', '8', 'On Reveal: Activate the On Reveal abilities of your other cards here.', True, 'https://marvelsnap.pro/cards/odin', False, '[]', False),
+            Card('Odin', 'Odin', '6', '8', 'On Reveal: Activate the On Reveal abilities of your other cards here.', True, 'https://marvelsnap.pro/cards/odin', False, '[]', False),
+            Card('Odin', 'Odin', '6', '8', 'On Reveal: Activate the On Reveal abilities of your other cards here.', True, 'https://marvelsnap.pro/cards/odin', False, '[]', False),
+            Card('Odin', 'Odin', '6', '8', 'On Reveal: Activate the On Reveal abilities of your other cards here.', True, 'https://marvelsnap.pro/cards/odin', False, '[]', False),
+            Card('Odin', 'Odin', '6', '8', 'On Reveal: Activate the On Reveal abilities of your other cards here.', True, 'https://marvelsnap.pro/cards/odin', False, '[]', False),
+            Card('Odin', 'Odin', '6', '8', 'On Reveal: Activate the On Reveal abilities of your other cards here.', True, 'https://marvelsnap.pro/cards/odin', False, '[]', False),
+            Card('Odin', 'Odin', '6', '8', 'On Reveal: Activate the On Reveal abilities of your other cards here.', True, 'https://marvelsnap.pro/cards/odin', False, '[]', False),
+            Card('Odin', 'Odin', '6', '8', 'On Reveal: Activate the On Reveal abilities of your other cards here.', True, 'https://marvelsnap.pro/cards/odin', False, '[]', False),
+            Card('Wolverine', 'Wolverine', '2', '2', 'When this is discarded or destroyed, regenerate it with +2 Power at a random location.', True, 'https://marvelsnap.pro/cards/wolverine', False, '[]', False),
+            Card('Wolverine', 'Wolverine', '2', '2', 'When this is discarded or destroyed, regenerate it with +2 Power at a random location.', True, 'https://marvelsnap.pro/cards/wolverine', False, '[]', False),
+            Card('Wolverine', 'Wolverine', '2', '2', 'When this is discarded or destroyed, regenerate it with +2 Power at a random location.', True, 'https://marvelsnap.pro/cards/wolverine', False, '[]', False),
+            Card('Wolverine', 'Wolverine', '2', '2', 'When this is discarded or destroyed, regenerate it with +2 Power at a random location.', True, 'https://marvelsnap.pro/cards/wolverine', False, '[]', False),
+            Card('Wolverine', 'Wolverine', '2', '2', 'When this is discarded or destroyed, regenerate it with +2 Power at a random location.', True, 'https://marvelsnap.pro/cards/wolverine', False, '[]', False),
+            Card('Odin', 'Odin', '6', '8', 'On Reveal: Activate the On Reveal abilities of your other cards here.', True, 'https://marvelsnap.pro/cards/odin', False, '[]', False),
+            Card('Odin', 'Odin', '6', '8', 'On Reveal: Activate the On Reveal abilities of your other cards here.', True, 'https://marvelsnap.pro/cards/odin', False, '[]', False)
         ]
 
         result = utils.remove_duplicate_cards(cards)
         expected_result = [
-            Card('Odin', 'Odin', '6', '8', 'On Reveal: Activate the On Reveal abilities of your other cards here.', True, 'https://marvelsnap.pro/cards/odin', False, '[]'),
-            Card('Wolverine', 'Wolverine', '2', '2', 'When this is discarded or destroyed, regenerate it with +2 Power at a random location.', True, 'https://marvelsnap.pro/cards/wolverine', False, '[]')
+            Card('Odin', 'Odin', '6', '8', 'On Reveal: Activate the On Reveal abilities of your other cards here.', True, 'https://marvelsnap.pro/cards/odin', False, '[]', False),
+            Card('Wolverine', 'Wolverine', '2', '2', 'When this is discarded or destroyed, regenerate it with +2 Power at a random location.', True, 'https://marvelsnap.pro/cards/wolverine', False, '[]', False)
         ]
 
         self.assertEqual(len(expected_result), len(result))

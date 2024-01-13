@@ -3,20 +3,26 @@ import json
 from . import Entry
 
 class Card(Entry):
-    def __init__(self, def_id: str, name: str, cost: int, power: int, ability: str, released: bool, url: str, is_token: bool, connected_cards):
+    def __init__(self, def_id: str, name: str, cost: int, power: int, ability: str, released: bool, url: str, is_token: bool, connected_cards, summoned: bool):
         super().__init__(def_id, name, ability, released, url)
         self.cost = cost
         self.power = power
         self.is_token = is_token
         self.connected_cards = json.loads(connected_cards)
         self.formatted_ability = ''
+        self.summoned = summoned
 
     def __str__(self):
         """
         Combone the fields in this class into a single output that may be
         displayed with correct formatting
         """
-        template = r'**\[[{name}]({url})\]** {status}**Cost:** {cost} **Power:** {power}  \n**Ability:** {ability}\n\n'
+        template = ''
+
+        if self.summoned:
+            template = r'* **\[[{name}]({url})\]** {status}**Cost:** {cost} **Power:** {power}  \n**Ability:** {ability}\n\n'
+        else:
+            template = r'**\[[{name}]({url})\]** {status}**Cost:** {cost} **Power:** {power}  \n**Ability:** {ability}\n\n'
         template = template.replace(r'\n', '\n')
 
         return template.format(
