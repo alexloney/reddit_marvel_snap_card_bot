@@ -3,7 +3,8 @@ import re
 from . import Lookup
 
 class Entry(Lookup):
-    def __init__(self, name, ability, released, url):
+    def __init__(self, def_id: str, name: str, ability: str, released: bool, url: str):
+        self.def_id = def_id
         self.name = name
         self.ability = ability
         self.released = released

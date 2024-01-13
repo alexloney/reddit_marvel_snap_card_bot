@@ -7,7 +7,7 @@ import os
 import sys
 import time
 
-from database import Database
+from database import Database, Card
 from reddit_connect import RedditConnect
 from comments import CommentParser
 import utils
@@ -176,6 +176,28 @@ if __name__ == '__main__':
     last_database_update = datetime.datetime.now()
     logging.info('Next DB update in ' + str(db_update_timeout) + 's')
 
+    cards = database.search('soul stone')
+    for card in cards:
+        print(card)
+    
+    cards = database.search('demon')
+    for card in cards:
+        print(card)
+    
+    cards = database.search('Mjolnir')
+    for card in cards:
+        print(card)
+    
+    cards = database.search('Stormbreaker')
+    for card in cards:
+        print(card)
+    
+    cards = database.search('Beta Ray Bill')
+    for card in cards:
+        print(card)
+
+    sys.exit(1)
+
     logging.info('Establishing Reddit connection (' + subreddit + ')')
     if len(config_file) > 0:
         logging.info('Using Reddit config file')
@@ -219,6 +241,12 @@ if __name__ == '__main__':
                     for item in database.search(name):
                         matched_cards.append(item)
                 unique_cards = utils.remove_duplicate_cards(matched_cards)
+
+                # Resolve all tokens to their base cards if possible
+                unique_cards = utils.resolve_tokens_to_base(database, unique_cards)
+                
+                # Now reverse the above and resolve all tokens from all base cards
+                unique_cards = utils.insert_tokens_from_cards(database, unique_cards)
 
                 # Combine all of the cards from above together into a single
                 # output message

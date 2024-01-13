@@ -1,8 +1,8 @@
 from . import Entry
 
 class Location(Entry):
-    def __init__(self, name:str, ability:str, rarity:str, released:bool, url:str):
-        super().__init__(name, ability, released, url)
+    def __init__(self, def_id: str, name:str, ability:str, rarity:str, released:bool, url:str):
+        super().__init__(def_id, name, ability, released, url)
         self.rarity = rarity
     
     def __str__(self):
