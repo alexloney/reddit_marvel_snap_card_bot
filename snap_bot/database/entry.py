@@ -51,4 +51,5 @@ class Entry(Lookup):
         For use when using marvelsnap.pro as the source, converting the output
         into a pretty print output for display on Reddit
         """
-        self.formatted_ability = self.ability.replace('<b>', '**').replace('</b>', '**').replace('<i>', '*').replace('</i>', '*')
+        self.formatted_ability = self.ability.replace('<b>', '**').replace('</b>', '**').replace('<i>', '*').replace('</i>', '*').replace('</color>', '')
+        self.formatted_ability = re.sub(r'<color=[^>]+>', '', self.formatted_ability)

@@ -23,9 +23,7 @@ class TestDatabase(unittest.TestCase):
         result = self.database.search('wolverine')
         expected_results = [Card('Wolverine', 'Wolverine', '2', '2', 'When this is discarded or destroyed, regenerate it with +2 Power at a random location.', True, 'https://marvelsnap.pro/cards/wolverine', False, '[]', False)]
  
-        self.assertEqual(len(expected_results), len(result))
-        for i in range(0, len(result)):
-            self.assertEqual(expected_results[i], result[i])
+        self.assertEqual(expected_results, result)
     
     def test_fuzzy_search_1(self):
         """
@@ -35,9 +33,7 @@ class TestDatabase(unittest.TestCase):
         result = self.database.search('wolerine')
         expected_results = [Card('Wolverine', 'Wolverine', '2', '2', 'When this is discarded or destroyed, regenerate it with +2 Power at a random location.', True, 'https://marvelsnap.pro/cards/wolverine', False, '[]', False)]
  
-        self.assertEqual(len(expected_results), len(result))
-        for i in range(0, len(result)):
-            self.assertEqual(expected_results[i], result[i])
+        self.assertEqual(expected_results, result)
 
     def test_fuzzy_search_2(self):
         """
@@ -47,9 +43,7 @@ class TestDatabase(unittest.TestCase):
         result = self.database.search('olerine')
         expected_results = [Card('Wolverine', 'Wolverine', '2', '2', 'When this is discarded or destroyed, regenerate it with +2 Power at a random location.', True, 'https://marvelsnap.pro/cards/wolverine', False, '[]', False)]
  
-        self.assertEqual(len(expected_results), len(result))
-        for i in range(0, len(result)):
-            self.assertEqual(expected_results[i], result[i])
+        self.assertEqual(expected_results, result)
 
     def test_fuzzy_search_3(self):
         """
@@ -77,9 +71,7 @@ class TestDatabase(unittest.TestCase):
             Card('Spell08NicoMinoru', 'Nico Minoru', '1', '2', '<b>On Reveal:</b> After you play your next card, double this card\'s Power.', True, 'https://marvelsnap.pro/cards/spell07nicominoru', True, '["Spell01NicoMinoru", "Spell02NicoMinoru", "Spell03NicoMinoru", "Spell04NicoMinoru", "Spell05NicoMinoru", "Spell06NicoMinoru"]', False)
             ]
 
-        self.assertEqual(len(expected_results), len(result))
-        for i in range(0, len(result)):
-            self.assertEqual(expected_results[i], result[i])
+        self.assertEqual(expected_results, result)
 
     def test_fuzzy_search_multicard_1(self):
         """
@@ -98,9 +90,7 @@ class TestDatabase(unittest.TestCase):
             Card('Spell08NicoMinoru', 'Nico Minoru', '1', '2', '<b>On Reveal:</b> After you play your next card, double this card\'s Power.', True, 'https://marvelsnap.pro/cards/spell07nicominoru', True, '["Spell01NicoMinoru", "Spell02NicoMinoru", "Spell03NicoMinoru", "Spell04NicoMinoru", "Spell05NicoMinoru", "Spell06NicoMinoru"]', False)
             ]
 
-        self.assertEqual(len(expected_results), len(result))
-        for i in range(0, len(result)):
-            self.assertEqual(expected_results[i], result[i])
+        self.assertEqual(expected_results, result)
 
     def test_location_search(self):
         """
@@ -109,9 +99,7 @@ class TestDatabase(unittest.TestCase):
         result = self.database.search('Altar of Death')
         expected_results = [Location('AltarOfDeath', 'Altar of Death', 'After you play a card here, destroy it to get +2 Energy next turn.', 'Rare', True, 'https://marvelsnap.pro/cards/altarofdeath')]
 
-        self.assertEqual(len(expected_results), len(result))
-        for i in range(0, len(result)):
-            self.assertEqual(expected_results[i], result[i])
+        self.assertEqual(expected_results, result)
     
     def test_card_partial_search(self):
         """
@@ -121,9 +109,7 @@ class TestDatabase(unittest.TestCase):
         result = self.database.search('hope')
         expected_results = [Card('HopeSummers', 'Hope Summers', '3', '3', 'After you play a card here, you get +2 Energy next turn.', False, 'https://marvelsnap.pro/cards/hopesummers', False, '[]', False)]
         
-        self.assertEqual(len(expected_results), len(result))
-        for i in range(0, len(result)):
-            self.assertEqual(expected_results[i], result[i])
+        self.assertEqual(expected_results, result)
 
     def test_card_partial_search_not_found(self):
         """
@@ -134,9 +120,7 @@ class TestDatabase(unittest.TestCase):
         result = self.database.search('m')
         expected_results = []
 
-        self.assertEqual(len(expected_results), len(result))
-        for i in range(0, len(result)):
-            self.assertEqual(expected_results[i], result[i])
+        self.assertEqual(expected_results, result)
 
     def test_card_partial_search_not_found(self):
         """
@@ -146,9 +130,7 @@ class TestDatabase(unittest.TestCase):
         result = self.database.search('Mobius')
         expected_results = [Card('MobiusMMobius', 'Mobius M. Mobius', '3', '3', '<b>Ongoing:</b> Your Costs can\'t be increased. Your opponent\'s Costs can\'t be reduced.', True, 'https://marvelsnap.pro/cards/mobiusmmobius', False, '[]', False)]
 
-        self.assertEqual(len(expected_results), len(result))
-        for i in range(0, len(result)):
-            self.assertEqual(expected_results[i], result[i])
+        self.assertEqual(expected_results, result)
 
     def test_resolve_tokens(self):
         """
@@ -162,9 +144,7 @@ class TestDatabase(unittest.TestCase):
             Card('Thanos', 'Thanos', '6', '10', 'At the start of the game, shuffle the six Infinity Stones into your deck.', True, 'https://marvelsnap.pro/cards/thanos', False, '["SpaceStone", "RealityStone", "TimeStone", "MindStone", "PowerStone", "SoulStone"]', False)
         ]
 
-        self.assertEqual(len(expected_result), len(result))
-        for i in range(0, len(result)):
-            self.assertEqual(expected_result[i], result[i])
+        self.assertEqual(expected_result, result)
 
     def test_insert_tokens(self):
         """
@@ -184,9 +164,7 @@ class TestDatabase(unittest.TestCase):
             Card('SoulStone', 'Soul Stone', '1', '1', '<b>Ongoing:</b> Enemy cards here have -1 Power.', True, 'https://marvelsnap.pro/cards/soulstone', True, '["Thanos"]', True)
         ]
 
-        self.assertEqual(len(expected_result), len(result))
-        for i in range(0, len(result)):
-            self.assertEqual(expected_result[i], result[i])
+        self.assertEqual(expected_result, result)
     
     def test_match_nico_duplication(self):
         """
@@ -210,9 +188,44 @@ class TestDatabase(unittest.TestCase):
             Card('Spell08NicoMinoru', 'Nico Minoru', '1', '2', '<b>On Reveal:</b> After you play your next card, double this card\'s Power.', True, 'https://marvelsnap.pro/cards/spell07nicominoru', True, '["Spell01NicoMinoru", "Spell02NicoMinoru", "Spell03NicoMinoru", "Spell04NicoMinoru", "Spell05NicoMinoru", "Spell06NicoMinoru"]', True)
             ]
         
-        self.assertEqual(len(expected_results), len(results))
-        for i in range(0, len(results)):
-            self.assertEqual(expected_results[i], results[i])
+        self.assertEqual(expected_results, results)
+    
+    def test_not_searchable_card(self):
+        """
+        Verify that a card marked as not searchable is not searchable
+        """
+        cards = self.database.search('Abomination')
+
+        expected_results = [
+            Card('Abomination', 'Abomination', '5', '9', '<i>"Foolish rabble! You are beneath me!"</i>', True, 'https://marvelsnap.pro/cards/abomination', False, '[]', False)
+        ]
+
+        self.assertEqual(expected_results, cards)
+    
+    def test_search_evolved(self):
+        """
+        Test that a search for High Evo will return the evolved cards as well as
+        the updated "Evolved" names to differentiate them from the standard
+        non-evolved cards
+        """
+        cards = self.database.search('High Evolutionary')
+        cards = utils.remove_duplicate_cards(cards)
+        cards = utils.resolve_tokens_to_base(self.database, cards)
+        cards = utils.remove_duplicate_cards(cards)
+        results = utils.insert_tokens_from_cards(self.database, cards)
+
+        expected_results = [
+            Card('HighEvolutionary', 'High Evolutionary', '4', '4', 'At the start of the game, unlock the potential of your cards with no abilities.', True, 'https://marvelsnap.pro/cards/highevolutionary', False, '["EvolvedWasp","EvolvedMistyKnight","EvolvedShocker","EvolvedCyclops","EvolvedTheThing","EvolvedAbomination","EvolvedHulk"]', False),
+            Card('EvolvedWasp', 'Evolved Wasp', '0', '1', '<color=#fad728><b>On Reveal:</b> Afflict an enemy card here with -1 Power.</color>', True, 'https://marvelsnap.pro/cards/evolvedwasp', True, '[]', True),
+            Card('EvolvedMistyKnight', 'Evolved Misty Knight', '1', '2', '<color=#fad728>When you end a turn with unspent Energy, give one of your other cards +1 Power.</color>', True, 'https://marvelsnap.pro/cards/evolvedmistyknight', True, '[]', True),
+            Card('EvolvedShocker', 'Evolved Shocker', '2', '3', '<color=#fad728><b>On Reveal:</b> Give the leftmost card in your hand -1 Cost.</color>', True, 'https://marvelsnap.pro/cards/evolvedshocker', True, '[]', True),
+            Card('EvolvedCyclops', 'Evolved Cyclops', '3', '4', '<color=#fad728>When you end a turn with unspent Energy, afflict 2 enemy cards here with -1 Power.</color>', True, 'https://marvelsnap.pro/cards/evolvedcyclops', True, '[]', True),
+            Card('EvolvedTheThing', 'Evolved The Thing', '4', '6', '<color=#fad728><b>On Reveal:</b> Afflict 3 enemy cards here with -1 Power.</color>', True, 'https://marvelsnap.pro/cards/evolvedthething', True, '[]', True),
+            Card('EvolvedAbomination', 'Evolved Abomination', '5', '9', '<color=#fad728>Costs 1 less for each enemy card in play that\'s afflicted with negative Power.</color>', True, 'https://marvelsnap.pro/cards/evolvedabomination', True, '[]', True),
+            Card('EvolvedHulk', 'Evolved Hulk', '6', '12', '<color=#fad728>When you end a turn with unspent Energy, +2 Power. <i>(if in hand or in play)</i></color>', True, 'https://marvelsnap.pro/cards/evolvedhulk', True, '[]', True)
+        ]
+
+        self.assertEqual(expected_results, results)
 
 if __name__ == '__main__':
     unittest.main()

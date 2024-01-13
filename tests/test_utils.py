@@ -36,9 +36,7 @@ class TestCommentParser(unittest.TestCase):
             Card('Wolverine', 'Wolverine', '2', '2', 'When this is discarded or destroyed, regenerate it with +2 Power at a random location.', True, 'https://marvelsnap.pro/cards/wolverine', False, '[]', False)
         ]
 
-        self.assertEqual(len(expected_result), len(result))
-        for i in range(0, len(result)):
-            self.assertEqual(expected_result[i], result[i])
+        self.assertEqual(expected_result, result)
 
 if __name__ == '__main__':
     unittest.main()

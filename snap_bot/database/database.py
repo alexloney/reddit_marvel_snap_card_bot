@@ -27,6 +27,44 @@ class Database:
         
         return response
 
+    def update_card_searchability(self, card):
+        """
+        Update the searchability of a given card based on criteria for that card
+        """
+
+        # The "Evolved" cards may be pulled in as tokens for High Evo, but as a
+        # general rule I don't think they should be generally searchable as it
+        # kind of clutters the search results for the standard card.
+        if card.def_id.startswith('Evolved'):
+            card.searchable = False
+        else:
+            card.searchable = True
+    
+    def update_card_name(self, card):
+        """
+        Update the names of cards to be a little more descriptive. This could be
+        maybe moved into a lookup file/table at some point
+        """
+
+        if card.def_id == 'EvolvedAbomination':
+            card.name = 'Evolved Abomination'
+        elif card.def_id == 'EvolvedCyclops':
+            card.name = 'Evolved Cyclops'
+        elif card.def_id == 'EvolvedHulk':
+            card.name = 'Evolved Hulk'
+        elif card.def_id == 'EvolvedMistyKnight':
+            card.name = 'Evolved Misty Knight'
+        elif card.def_id == 'EvolvedShocker':
+            card.name = 'Evolved Shocker'
+        elif card.def_id == 'EvolvedTheThing':
+            card.name = 'Evolved The Thing'
+        elif card.def_id == 'EvolvedWasp':
+            card.name = 'Evolved Wasp'
+        elif card.def_id == 'SnowguardBear':
+            card.name = 'Snowguard Bear'
+        elif card.def_id == 'SnowguardHawk':
+            card.name = 'Snowguard Hawk'
+
     def update_card_database_marvelsnappro(self):
         """
         Use the marvelsnap.pro website as an API source to pull card information.
@@ -59,19 +97,35 @@ class Database:
             if is_token == '0' and source == 'None':
                 released = False
 
-            # NOTE: this also contains a "connected_cards" field which will connect
-            #       cards together. For instance, "Space Stone" lists "Thanos" as a
-            #       connection. I am currently not using this as it appears to
-            #       provide connections that may not be useful, like "Spider-Man"
-            #       to "Uncle Ben" (which doesn't exist). However, in the future
-            #       it may be useful to look into this connection and use it for
-            #       printing additional cards.
-
             if is_token == '1':
-                self.summons.append(Card(def_id, name, cost, power, ability, released, url, True, connected_cards, False))
+                self.summons.append(Card(
+                    def_id = def_id, 
+                    name = name, 
+                    cost = cost, 
+                    power = power, 
+                    ability = ability, 
+                    released = released, 
+                    url = url, 
+                    is_token = True, 
+                    connected_cards = connected_cards, 
+                    summoned = False))
+                self.update_card_searchability(self.summons[-1])
+                self.update_card_name(self.summons[-1])
                 self.summons[-1].format_ability_from_html()
             else:
-                self.cards.append(Card(def_id, name, cost, power, ability, released, url, False, connected_cards, False))
+                self.cards.append(Card(
+                    def_id = def_id, 
+                    name = name, 
+                    cost = cost, 
+                    power = power, 
+                    ability = ability, 
+                    released = released, 
+                    url = url, 
+                    is_token = False, 
+                    connected_cards = connected_cards, 
+                    summoned = False))
+                self.update_card_searchability(self.cards[-1])
+                self.update_card_name(self.cards[-1])
                 self.cards[-1].format_ability_from_html()
 
         data = self.download_url(api_location_url)
@@ -125,6 +179,8 @@ class Database:
         # Always check cards first, so that the base card will be at the top of
         # the response
         for card in self.cards:
+            if not card.searchable:
+                continue
             next_match_score = card.test_distance_splits(query)
             if next_match_score < best_match_score:
                 best_match_score = next_match_score
@@ -135,6 +191,8 @@ class Database:
         # Next check the Summons so that the summon will be listed second after
         # the card
         for summon in self.summons:
+            if not summon.searchable:
+                continue
             next_match_score = summon.test_distance_splits(query)
             if next_match_score < best_match_score:
                 best_match_score = next_match_score
@@ -175,8 +233,6 @@ class Database:
         """
         Search for a card by name using an exact match instead of fuzzy
         """
-        best_match_score = 99999
-        best_match = []
 
         # Always check cards first, so that the base card will be at the top of
         # the response
