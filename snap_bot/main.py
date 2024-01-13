@@ -176,28 +176,6 @@ if __name__ == '__main__':
     last_database_update = datetime.datetime.now()
     logging.info('Next DB update in ' + str(db_update_timeout) + 's')
 
-    cards = database.search('soul stone')
-    for card in cards:
-        print(card)
-    
-    cards = database.search('demon')
-    for card in cards:
-        print(card)
-    
-    cards = database.search('Mjolnir')
-    for card in cards:
-        print(card)
-    
-    cards = database.search('Stormbreaker')
-    for card in cards:
-        print(card)
-    
-    cards = database.search('Beta Ray Bill')
-    for card in cards:
-        print(card)
-
-    sys.exit(1)
-
     logging.info('Establishing Reddit connection (' + subreddit + ')')
     if len(config_file) > 0:
         logging.info('Using Reddit config file')
