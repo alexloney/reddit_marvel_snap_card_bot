@@ -247,7 +247,46 @@ class TestDatabase(unittest.TestCase):
         ]
 
         self.assertEqual(expected_results, results)
+    
+    def test_uncle_ben(self):
+        """
+        As of this time, Spider-Man links to Uncle Ben, but Uncle Ben isn't
+        in the game at all and does not appear to have a point where he will
+        be added. So since I'm pulling in tokens for cards, this provides a
+        confusing output. Thus I've disabled Uncle Ben from being matched and
+        will test here to ensure that he is not found.
+        """
 
+        cards = self.database.search('Spider-Man')
+        cards = utils.remove_duplicate_cards(cards)
+        cards = utils.resolve_tokens_to_base(self.database, cards)
+        cards = utils.remove_duplicate_cards(cards)
+        results = utils.insert_tokens_from_cards(self.database, cards)
+
+        expected_results = [
+            Card('SpiderMan', 'Spider-Man', '3', '5', '<b>On Reveal:</b> Move to another location and pull an enemy card from here to there.', True, 'https://marvelsnap.pro/cards/spiderman', False, '["UncleBen"]', False)
+        ]
+
+        self.assertEqual(expected_results, results)
+    
+    def test_widows_bite(self):
+        """
+        The Widow's Bite card is not reporting as being connected to Black Widow
+        so this tests our manual data fix works.
+        """
+
+        cards = self.database.search('Widows Bite')
+        cards = utils.remove_duplicate_cards(cards)
+        cards = utils.resolve_tokens_to_base(self.database, cards)
+        cards = utils.remove_duplicate_cards(cards)
+        results = utils.insert_tokens_from_cards(self.database, cards)
+
+        expected_results = [
+            Card('BlackWidow', 'Black Widow', '3', '3', '<b>On Reveal:</b> Add a Widow\'s Bite to your opponent\'s hand.', True, 'https://marvelsnap.pro/cards/blackwidow', False, '["WidowsBite"]', False),
+            Card('WidowsBite', 'Widow\'s Bite', '0', '-1', 'While this is in your hand, you can\'t draw cards.', False, 'https://marvelsnap.pro/cards/widowsbite', True, '["BlackWidow"]', True)
+        ]
+
+        self.assertEqual(expected_results, results)
 
 if __name__ == '__main__':
     unittest.main()

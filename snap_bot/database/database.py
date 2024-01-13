@@ -32,12 +32,16 @@ class Database:
         if card.def_id in patches:
             if 'searchable' in patches[card.def_id]:
                 card.searchable = patches[card.def_id]['searchable']
+            if 'matchable' in patches[card.def_id]:
+                card.matchable = patches[card.def_id]['matchable']
             if 'name' in patches[card.def_id]:
                 card.name = patches[card.def_id]['name']
             if 'url' in patches[card.def_id]:
                 card.url = patches[card.def_id]['url']
             if 'is_Token' in patches[card.def_id]:
                 card.is_token = patches[card.def_id]['is_Token']
+            if 'connected_cards' in patches[card.def_id]:
+                card.connected_cards = json.loads(patches[card.def_id]['connected_cards'])
 
     def update_card_database_marvelsnappro(self):
         """
@@ -181,7 +185,7 @@ class Database:
         # Always check cards first, so that the base card will be at the top of
         # the response
         for card in self.cards:
-            if card.def_id == query:
+            if card.def_id == query and card.matchable:
                 return card
         
         for card in self.locations:

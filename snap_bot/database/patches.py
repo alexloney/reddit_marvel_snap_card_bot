@@ -37,10 +37,30 @@ patches = {
     'EbonyBlade': {
         'is_Token': True
     }, 
+    'MuramasaShard': {
+        'is_Token': True
+    },
+    'MysterioIllusion': {
+        'is_Token': True
+    },
+    'Stormbreaker': {
+        'is_Token': True
+    },
+    'Pig': {
+        'is_Token': True
+    },
     'SnowguardBear': {
         'name': 'Snowguard Bear'
     }, 
     'SnowguardHawk': {
         'name': 'Snowguard Hawk'
+    },
+    'UncleBen': {
+        'searchable': False,
+        'matchable': False
+    },
+    'WidowsBite': {
+        'connected_cards': '["BlackWidow"]',
+        'is_Token': True
     }
 }
