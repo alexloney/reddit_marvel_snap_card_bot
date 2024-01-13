@@ -55,6 +55,18 @@ class TestCommentParser(unittest.TestCase):
         expected_card_text = r'* **\[[Mind Stone](https://marvelsnap.pro/cards/mindstone)\]** **Cost:** 1 **Power:** 1' + '  \n' + r'**Ability:** **On Reveal:** Draw 2 1-Cost cards from your deck.' + '\n\n'
 
         self.assertEqual(expected_card_text, card_text)
+    
+    def test_card_text_evoled(self):
+        """
+        Test that an evolved card does not have the color HTML text
+        """
+        card = Card('Hulk', 'Hulk', '6', '12', '<color=#fad728>When you end a turn with unspent Energy, +2 Power. <i>(if in hand or in play)</i></color>', True, None, False, '[]', True)
+        card.format_ability_from_html()
+
+        card_text = str(card)
+        expected_card_text = r'* **\[Hulk\]** **Cost:** 6 **Power:** 12' + '  \n' + r'**Ability:** When you end a turn with unspent Energy, +2 Power. *(if in hand or in play)*' + '\n\n'
+
+        self.assertEqual(expected_card_text, card_text)
 
 if __name__ == '__main__':
     unittest.main()
