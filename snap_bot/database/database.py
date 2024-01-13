@@ -64,6 +64,24 @@ class Database:
             card.name = 'Snowguard Bear'
         elif card.def_id == 'SnowguardHawk':
             card.name = 'Snowguard Hawk'
+    
+    def update_card_url(self, card):
+        """
+        Update or remove the URL if it is a card we know has a non-funcitoning URL.
+        It would technically be possible to ping each URL and verify that they
+        are valid, but I do not want to put any unneeded stress on the server
+        I'm obtaining the card lookup information from. So instead, I'm just
+        going to hardcode a list of cards to remove the URL from.
+        """
+        
+        if card.def_id == 'EvolvedAbomination' or \
+           card.def_id == 'EvolvedCyclops' or \
+           card.def_id == 'EvolvedHulk' or \
+           card.def_id == 'EvolvedMistyKnight' or \
+           card.def_id == 'EvolvedShocker' or \
+           card.def_id == 'EvolvedTheThing' or \
+           card.def_id == 'EvolvedWasp':
+            card.url = None
 
     def update_card_database_marvelsnappro(self):
         """
@@ -111,6 +129,7 @@ class Database:
                     summoned = False))
                 self.update_card_searchability(self.summons[-1])
                 self.update_card_name(self.summons[-1])
+                self.update_card_url(self.summons[-1])
                 self.summons[-1].format_ability_from_html()
             else:
                 self.cards.append(Card(
@@ -126,6 +145,7 @@ class Database:
                     summoned = False))
                 self.update_card_searchability(self.cards[-1])
                 self.update_card_name(self.cards[-1])
+                self.update_card_url(self.cards[-1])
                 self.cards[-1].format_ability_from_html()
 
         data = self.download_url(api_location_url)

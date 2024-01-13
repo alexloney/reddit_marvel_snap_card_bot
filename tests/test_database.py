@@ -216,13 +216,13 @@ class TestDatabase(unittest.TestCase):
 
         expected_results = [
             Card('HighEvolutionary', 'High Evolutionary', '4', '4', 'At the start of the game, unlock the potential of your cards with no abilities.', True, 'https://marvelsnap.pro/cards/highevolutionary', False, '["EvolvedWasp","EvolvedMistyKnight","EvolvedShocker","EvolvedCyclops","EvolvedTheThing","EvolvedAbomination","EvolvedHulk"]', False),
-            Card('EvolvedWasp', 'Evolved Wasp', '0', '1', '<color=#fad728><b>On Reveal:</b> Afflict an enemy card here with -1 Power.</color>', True, 'https://marvelsnap.pro/cards/evolvedwasp', True, '[]', True),
-            Card('EvolvedMistyKnight', 'Evolved Misty Knight', '1', '2', '<color=#fad728>When you end a turn with unspent Energy, give one of your other cards +1 Power.</color>', True, 'https://marvelsnap.pro/cards/evolvedmistyknight', True, '[]', True),
-            Card('EvolvedShocker', 'Evolved Shocker', '2', '3', '<color=#fad728><b>On Reveal:</b> Give the leftmost card in your hand -1 Cost.</color>', True, 'https://marvelsnap.pro/cards/evolvedshocker', True, '[]', True),
-            Card('EvolvedCyclops', 'Evolved Cyclops', '3', '4', '<color=#fad728>When you end a turn with unspent Energy, afflict 2 enemy cards here with -1 Power.</color>', True, 'https://marvelsnap.pro/cards/evolvedcyclops', True, '[]', True),
-            Card('EvolvedTheThing', 'Evolved The Thing', '4', '6', '<color=#fad728><b>On Reveal:</b> Afflict 3 enemy cards here with -1 Power.</color>', True, 'https://marvelsnap.pro/cards/evolvedthething', True, '[]', True),
-            Card('EvolvedAbomination', 'Evolved Abomination', '5', '9', '<color=#fad728>Costs 1 less for each enemy card in play that\'s afflicted with negative Power.</color>', True, 'https://marvelsnap.pro/cards/evolvedabomination', True, '[]', True),
-            Card('EvolvedHulk', 'Evolved Hulk', '6', '12', '<color=#fad728>When you end a turn with unspent Energy, +2 Power. <i>(if in hand or in play)</i></color>', True, 'https://marvelsnap.pro/cards/evolvedhulk', True, '[]', True)
+            Card('EvolvedWasp', 'Evolved Wasp', '0', '1', '<color=#fad728><b>On Reveal:</b> Afflict an enemy card here with -1 Power.</color>', True, None, True, '[]', True),
+            Card('EvolvedMistyKnight', 'Evolved Misty Knight', '1', '2', '<color=#fad728>When you end a turn with unspent Energy, give one of your other cards +1 Power.</color>', True, None, True, '[]', True),
+            Card('EvolvedShocker', 'Evolved Shocker', '2', '3', '<color=#fad728><b>On Reveal:</b> Give the leftmost card in your hand -1 Cost.</color>', True, None, True, '[]', True),
+            Card('EvolvedCyclops', 'Evolved Cyclops', '3', '4', '<color=#fad728>When you end a turn with unspent Energy, afflict 2 enemy cards here with -1 Power.</color>', True, None, True, '[]', True),
+            Card('EvolvedTheThing', 'Evolved The Thing', '4', '6', '<color=#fad728><b>On Reveal:</b> Afflict 3 enemy cards here with -1 Power.</color>', True, None, True, '[]', True),
+            Card('EvolvedAbomination', 'Evolved Abomination', '5', '9', '<color=#fad728>Costs 1 less for each enemy card in play that\'s afflicted with negative Power.</color>', True, None, True, '[]', True),
+            Card('EvolvedHulk', 'Evolved Hulk', '6', '12', '<color=#fad728>When you end a turn with unspent Energy, +2 Power. <i>(if in hand or in play)</i></color>', True, None, True, '[]', True)
         ]
 
         self.assertEqual(expected_results, results)
