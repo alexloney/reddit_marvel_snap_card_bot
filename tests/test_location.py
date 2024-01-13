@@ -10,7 +10,7 @@ class TestCommentParser(unittest.TestCase):
         """
         Test that a location generates the exact expected output text
         """
-        location = Location('Altar of Death', 'After you play a card here, destroy it to get +2 Energy next turn.', 'Rare', True, 'https://marvelsnap.pro/cards/altarofdeath')
+        location = Location('AltarOfDeath', 'Altar of Death', 'After you play a card here, destroy it to get +2 Energy next turn.', 'Rare', True, 'https://marvelsnap.pro/cards/altarofdeath')
         location_text = str(location)
         
         expected_location_text = r'**\[[Altar of Death](https://marvelsnap.pro/cards/altarofdeath)\]** **Location:** Rarity Rare' + '  \n' + r'**Description:** After you play a card here, destroy it to get +2 Energy next turn.' + '\n\n'
@@ -21,7 +21,7 @@ class TestCommentParser(unittest.TestCase):
         """
         Test that a card that is unreleased includes the appropriate tag
         """
-        location = Location('Altar of Death', 'After you play a card here, destroy it to get +2 Energy next turn.', 'Rare', False, 'https://marvelsnap.pro/cards/altarofdeath')
+        location = Location('AltarOfDeath', 'Altar of Death', 'After you play a card here, destroy it to get +2 Energy next turn.', 'Rare', False, 'https://marvelsnap.pro/cards/altarofdeath')
         location_text = str(location)
         
         expected_location_text = r'**\[[Altar of Death](https://marvelsnap.pro/cards/altarofdeath)\]** (Unreleased) **Location:** Rarity Rare' + '  \n' + r'**Description:** After you play a card here, destroy it to get +2 Energy next turn.' + '\n\n'

@@ -11,7 +11,7 @@ class TestCommentParser(unittest.TestCase):
         Test that a card string output is the exact expected string output for
         displaying
         """
-        card = Card('Wolverine', '2', '2', 'When this is discarded or destroyed, regenerate it with +2 Power at a random location.', True, 'https://marvelsnap.pro/cards/wolverine')
+        card = Card('Wolverine', 'Wolverine', '2', '2', 'When this is discarded or destroyed, regenerate it with +2 Power at a random location.', True, 'https://marvelsnap.pro/cards/wolverine', False, '[]')
         card.format_ability_from_html()
 
         card_text = str(card)
@@ -24,7 +24,7 @@ class TestCommentParser(unittest.TestCase):
         Test that a card string output with HTML contents is the exact string
         output for displaying
         """
-        card = Card('Nico Minoru', '1', '2', '<b>On Reveal:</b> After you play your next card, cast a spell. <i>(The spell changes each turn.)</i>', True, 'https://marvelsnap.pro/cards/nicominoru')
+        card = Card('NicoMinoru', 'Nico Minoru', '1', '2', '<b>On Reveal:</b> After you play your next card, cast a spell. <i>(The spell changes each turn.)</i>', True, 'https://marvelsnap.pro/cards/nicominoru', False, '[]')
         card.format_ability_from_html()
 
         card_text = str(card)
@@ -36,7 +36,7 @@ class TestCommentParser(unittest.TestCase):
         """
         Test that a card marked as unreleased includes the appropriate tag
         """
-        card = Card('Wolverine', '2', '2', 'When this is discarded or destroyed, regenerate it with +2 Power at a random location.', False, 'https://marvelsnap.pro/cards/wolverine')
+        card = Card('Wolverine', 'Wolverine', '2', '2', 'When this is discarded or destroyed, regenerate it with +2 Power at a random location.', False, 'https://marvelsnap.pro/cards/wolverine', False, '[]')
         card.format_ability_from_html()
 
         card_text = str(card)

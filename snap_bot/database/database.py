@@ -42,6 +42,7 @@ class Database:
         self.summons = []
         self.locations = []
         for card in jdata:
+            def_id = jdata[card]['CardDefId']
             name = jdata[card]['name']
             cost = jdata[card]['cost']
             power = jdata[card]['power']
@@ -49,6 +50,7 @@ class Database:
             url = 'https://marvelsnap.pro/cards/' + card
             is_token = jdata[card]['is_Token']
             source = jdata[card]['source']
+            connected_cards = jdata[card]['connected_cards']
 
             # Cards do not appear to have a "released" flag, so I am inferring
             # that it is released by checking if it has a source and it is not
@@ -66,16 +68,17 @@ class Database:
             #       printing additional cards.
 
             if is_token == '1':
-                self.summons.append(Card(name, cost, power, ability, released, url))
+                self.summons.append(Card(def_id, name, cost, power, ability, released, url, True, connected_cards))
                 self.summons[-1].format_ability_from_html()
             else:
-                self.cards.append(Card(name, cost, power, ability, released, url))
+                self.cards.append(Card(def_id, name, cost, power, ability, released, url, False, connected_cards))
                 self.cards[-1].format_ability_from_html()
 
         data = self.download_url(api_location_url)
         jdata = data.json()
 
         for location in jdata:
+            def_id = jdata[location]['CardDefId']
             name = jdata[location]['name']
             ability = jdata[location]['description']
             rarity = jdata[location]['rarity']
@@ -86,7 +89,7 @@ class Database:
             if released_text == '0':
                 released = False
 
-            self.locations.append(Location(name, ability, rarity, released, url))
+            self.locations.append(Location(def_id, name, ability, rarity, released, url))
 
     def update_card_database(self):
         """
@@ -103,10 +106,18 @@ class Database:
     
     def search(self, query: str):
         """
-        Loop through all cards and find the closest match, if multiple cards have
-        the same closest match, fetch them all. This is to allow linked cards
-        like Nico Minoru's spells to be connected together and output as one when
-        Nico Minoru is found.
+        Thus function will loop through all cards located in our lookup and find
+        the clostest match to the search term. It will then loop through all
+        possible summons and locate the closest possible match and if a better
+        match is found, it'll take the base card(s) that can summon it and will
+        place them in our result set.
+
+        For example, if the search is [[Soul Stone]], it will (probably) not find
+        a matching regular card, but the Soul Stone card that can be summoned
+        by Thanos would be located. It would then include Thanos instead of
+        Soul Stone. Now this may seem a little counter-intuitive at first, but
+        Thanos as a base card will later pull in all the summons, so the output
+        that the user will eventually see is Thanos, followed by all stones.
         """
         best_match_score = 99999
         best_match = []
@@ -159,3 +170,26 @@ class Database:
             return best_match
         
         return []
+
+    def search_defid(self, query: str):
+        """
+        Search for a card by name using an exact match instead of fuzzy
+        """
+        best_match_score = 99999
+        best_match = []
+
+        # Always check cards first, so that the base card will be at the top of
+        # the response
+        for card in self.cards:
+            if card.def_id == query:
+                return card
+        
+        for card in self.summons:
+            if card.def_id == query:
+                return card
+        
+        for card in self.locations:
+            if card.def_id == query:
+                return card
+        
+        return None
