@@ -206,7 +206,8 @@ if __name__ == '__main__':
 
                 # Prevent replying to my own comments, if the author of the
                 # comment is the bot itself, then simply ignore the comment
-                if reddit_connect.get_my_username() == comment.author:
+                if reddit_connect.get_my_username() == comment.author or \
+                    'MarvelSnapCardBot' == comment.author:
                     continue
 
                 # Parse the comment and fetch the card names from it
@@ -254,7 +255,8 @@ if __name__ == '__main__':
                     # our username is not in a reply to this comment. This is to
                     # prevent us from replying to the same comment multiple times
                     authors = reddit_connect.get_comment_reply_author_names(comment.id)
-                    if reddit_connect.get_my_username() not in authors:
+                    if reddit_connect.get_my_username() not in authors and \
+                        'MarvelSnapCardBot' not in authors:
                         logging.info('Submitting reply')
                         logging.debug(response)
                         if dry_run == False:
