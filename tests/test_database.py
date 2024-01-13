@@ -187,7 +187,32 @@ class TestDatabase(unittest.TestCase):
         self.assertEqual(len(expected_result), len(result))
         for i in range(0, len(result)):
             self.assertEqual(expected_result[i], result[i])
+    
+    def test_match_nico_duplication(self):
+        """
+        Verify that a card with many summons (Nico SPECIFICALLY) can correctly
+        pull from the base card search, each of the summons.
+        """
+        cards = self.database.search('nico')
+        cards = utils.remove_duplicate_cards(cards)
+        cards = utils.resolve_tokens_to_base(self.database, cards)
+        cards = utils.remove_duplicate_cards(cards)
+        results = utils.insert_tokens_from_cards(self.database, cards)
+
+        expected_results = [
+            Card('NicoMinoru', 'Nico Minoru', '1', '2', '<b>On Reveal:</b> After you play your next card, cast a spell. <i>(The spell changes each turn.)</i>', True, 'https://marvelsnap.pro/cards/nicominoru', False, '["Spell01NicoMinoru", "Spell02NicoMinoru", "Spell03NicoMinoru", "Spell04NicoMinoru", "Spell05NicoMinoru", "Spell06NicoMinoru", "Spell07NicoMinoru"]'),
+            Card('Spell02NicoMinoru', 'Nico Minoru', '1', '2', '<b>On Reveal:</b> After you play your next card, it becomes a Demon.', True, 'https://marvelsnap.pro/cards/spell01nicominoru', True, '["Demon", "Spell02NicoMinoru", "Spell03NicoMinoru", "Spell04NicoMinoru", "Spell05NicoMinoru", "Spell06NicoMinoru", "Spell07NicoMinoru"]'),
+            Card('Spell03NicoMinoru', 'Nico Minoru', '1', '2', '<b>On Reveal:</b> After you play your next card, destroy it to draw two cards.', True, 'https://marvelsnap.pro/cards/spell02nicominoru', True, '["Spell01NicoMinoru", "Spell03NicoMinoru", "Spell04NicoMinoru", "Spell05NicoMinoru", "Spell06NicoMinoru", "Spell07NicoMinoru"]'),
+            Card('Spell04NicoMinoru', 'Nico Minoru', '1', '2', '<b>On Reveal:</b> After you play your next card, move it one location to the right.', True, 'https://marvelsnap.pro/cards/spell03nicominoru', True, '["Spell01NicoMinoru", "Spell02NicoMinoru", "Spell04NicoMinoru", "Spell05NicoMinoru", "Spell06NicoMinoru", "Spell07NicoMinoru"]'),
+            Card('Spell05NicoMinoru', 'Nico Minoru', '1', '2', '<b>On Reveal:</b> After you play your next card, give it +2 Power.', True, 'https://marvelsnap.pro/cards/spell04nicominoru', True, 	'["Spell01NicoMinoru", "Spell02NicoMinoru", "Spell03NicoMinoru", "Spell05NicoMinoru", "Spell06NicoMinoru", "Spell07NicoMinoru"]'),
+            Card('Spell06NicoMinoru', 'Nico Minoru', '1', '2', '<b>On Reveal:</b> After you play your next card, replace that card\'s location.', True, 'https://marvelsnap.pro/cards/spell05nicominoru', True, '["Spell01NicoMinoru", "Spell02NicoMinoru", "Spell03NicoMinoru", "Spell04NicoMinoru", "Spell06NicoMinoru", "Spell07NicoMinoru"]'),
+            Card('Spell07NicoMinoru', 'Nico Minoru', '1', '2', '<b>On Reveal:</b> After you play your next card, add a copy of it to your hand.', True, 'https://marvelsnap.pro/cards/spell06nicominoru', True, '["Spell01NicoMinoru", "Spell02NicoMinoru", "Spell03NicoMinoru", "Spell04NicoMinoru", "Spell05NicoMinoru", "Spell07NicoMinoru"]'),
+            Card('Spell08NicoMinoru', 'Nico Minoru', '1', '2', '<b>On Reveal:</b> After you play your next card, double this card\'s Power.', True, 'https://marvelsnap.pro/cards/spell07nicominoru', True, '["Spell01NicoMinoru", "Spell02NicoMinoru", "Spell03NicoMinoru", "Spell04NicoMinoru", "Spell05NicoMinoru", "Spell06NicoMinoru"]')
+            ]
         
+        self.assertEqual(len(expected_results), len(results))
+        for i in range(0, len(results)):
+            self.assertEqual(expected_results[i], results[i])
 
 if __name__ == '__main__':
     unittest.main()
