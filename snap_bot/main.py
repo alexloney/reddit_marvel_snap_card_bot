@@ -223,6 +223,14 @@ if __name__ == '__main__':
                 # Resolve all tokens to their base cards if possible
                 unique_cards = utils.resolve_tokens_to_base(database, unique_cards)
                 
+                # Resolving tokens to cards could add duplicate cards, since a
+                # card like Snowguard or Nico call their summon cards the same
+                # as the base card. This could result in duplicating cards and
+                # causing a much larger output than expected. Removing
+                # duplicates here before we expand back into tokens will resolve
+                # this issue.
+                unique_cards = utils.remove_duplicate_cards(unique_cards)
+
                 # Now reverse the above and resolve all tokens from all base cards
                 unique_cards = utils.insert_tokens_from_cards(database, unique_cards)
 
