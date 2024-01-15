@@ -287,6 +287,22 @@ class TestDatabase(unittest.TestCase):
         ]
 
         self.assertEqual(expected_results, results)
+    
+    def test_exact_and_split_match(self):
+        """
+        We want to wait an exact match such as [[Death]] higher than a partial or
+        split match such as "Alter of Death" (since it contains "Death" in the
+        name). This test ensures that a search for "Death" returns just "Death"
+        and not "Alter of Death"
+        """
+
+        results = self.database.search('Death')
+
+        expected_results = [
+            Card('Death', 'Death', '8', '12', 'Costs 1 less for each card destroyed this game.', True, 'https://marvelsnap.pro/cards/death', False, '[]', False)
+        ]
+
+        self.assertEqual(expected_results, results)
 
 if __name__ == '__main__':
     unittest.main()
