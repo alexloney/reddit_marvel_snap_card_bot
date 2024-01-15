@@ -133,28 +133,56 @@ class Database:
         Thanos as a base card will later pull in all the summons, so the output
         that the user will eventually see is Thanos, followed by all stones.
         """
-        best_match_score = 99999
+        best_match_score = 9999
         best_match = []
 
-        # Always check cards first, so that the base card will be at the top of
-        # the response
         for card in self.cards:
             if not card.searchable:
                 continue
-            next_match_score = card.test_distance_splits(query)
-            if next_match_score < best_match_score:
-                best_match_score = next_match_score
+
+            next_base_score = card.test_distance(query)
+            if next_base_score < best_match_score:
+                best_match_score = next_base_score
                 best_match = [card]
-            elif next_match_score == best_match_score:
+            elif next_base_score == best_match_score:
                 best_match.append(card)
 
         for location in self.locations:
-            next_match_score = location.test_distance_splits(query)
-            if next_match_score < best_match_score:
-                best_match_score = next_match_score
+            # if not location.searchable:
+            #     continue
+            
+            next_base_score = location.test_distance(query)
+            if next_base_score < best_match_score:
+                best_match_score = next_base_score
                 best_match = [location]
-            elif next_match_score == best_match_score:
+            elif next_base_score == best_match_score:
                 best_match.append(location)
+
+        if best_match_score != 0:
+
+            for card in self.cards:
+                if not card.searchable:
+                    continue
+                
+                next_split_score = card.test_distance_splits(query)
+                if next_split_score < best_match_score:
+                    best_match_score = next_split_score
+                    best_match = [card]
+                elif next_split_score == best_match_score:
+                    if card not in best_match:
+                        best_match.append(card)
+
+            for location in self.locations:
+                # if not location.searchable:
+                #     continue
+                
+                next_split_score = location.test_distance_splits(query)
+                if next_split_score < best_match_score:
+                    best_match_score = next_split_score
+                    best_match = [location]
+                elif next_split_score == best_match_score:
+                    if location not in best_match:
+                        best_match.append(location)
 
         # Consolidate the resulting searches together and return the output.
         # We have a few cases here:
