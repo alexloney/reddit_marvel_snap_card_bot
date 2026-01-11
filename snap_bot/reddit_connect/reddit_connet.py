@@ -3,7 +3,7 @@ import json
 
 from wells.utils import retry
 
-from comments import Comment
+from snap_bot.comments.comment import Comment  # Corrected import path
 
 class RedditConnect:
     def __init__(self, subreddit: str):
@@ -35,64 +35,88 @@ class RedditConnect:
     
     def init_reddit_args(self, client_id: str, client_secret: str, user_agent: str, username: str, password: str):
         """
-        Initialize the Reddit connection using the supplied details
+        Initialize the Reddit connection with provided arguments.
+        
+        Args:
+            client_id (str): The client ID for the Reddit API.
+            client_secret (str): The client secret for the Reddit API.
+            user_agent (str): The user agent string to identify the application.
+            username (str): The Reddit username.
+            password (str): The Reddit password.
         """
         self.reddit = praw.Reddit(
-            client_id = client_id,
-            client_secret = client_secret,
-            username = username,
-            password = password,
-            user_agent = user_agent)
-
-        self.subreddit = self.reddit.subreddit(self.subreddit_name)
+            client_id=client_id,
+            client_secret=client_secret,
+            user_agent=user_agent,
+            username=username,
+            password=password
+        )
     
-    @retry(times=3, interval=[1, 5, 10])
-    def get_comments_shallow(self):
+    def get_subreddit(self):
         """
-        Get a list of comments, these may repeat as it pulls the last 100 comments
-        each time it runs, so when we query again, we may get comments we've
-        already seen. Because of that, we are using a `seen_comments` variable
-        to keep track of comments we have already seen to prevent sending those
-        back up to the caller
-        """
-        comments = []
-        count = 0
-        for comment in self.subreddit.comments():
-            count += 1
-            if comment.id not in self.seen_comments:
-                self.seen_comments.append(comment.id)
-                comments.append(Comment(comment.id, comment.author.name, comment.body, 'https://reddit.com' + comment.permalink))
+        Get the subreddit instance based on the subreddit name.
         
-        # To prevent this list from simply growing to an unmanagable size, we
-        # will simply remove old entries when it has more than 150, since the
-        # query above only returns the past 100, this should be fine.
-        while len(self.seen_comments) > 150:
-            self.seen_comments.pop(0)
+        Returns:
+            praw.models.Subreddit: The subreddit object.
+        """
+        return self.reddit.subreddit(self.subreddit_name)
 
+    @retry(Exception, tries=3, delay=2)
+    def get_comments(self, limit=None):
+        """
+        Fetch comments from the subreddit.
+        
+        Args:
+            limit (int, optional): The maximum number of comments to fetch. Defaults to None.
+        
+        Returns:
+            list: A list of Comment objects.
+        """
+        subreddit = self.get_subreddit()
+        comments = []
+        for submission in subreddit.new(limit=limit):
+            for comment in submission.comments.list():
+                if isinstance(comment, praw.models.Comment):
+                    # Ensure the comment has a valid URL
+                    comment_url = f"https://www.reddit.com{comment.permalink}"
+                    new_comment = Comment(
+                        id=comment.id,
+                        author=comment.author.name if comment.author else 'unknown',
+                        body=comment.body,
+                        url=comment_url
+                    )
+                    new_comment.update_body_with_new_issue_link()
+                    comments.append(new_comment)
         return comments
-    
-    def get_comment_reply_author_names(self, id: str):
-        """
-        Fetch the names of the authors for a given comment.
-        """
-        comment = self.reddit.comment(id)
-        comment.refresh()
-        authors = []
-        for reply in comment.replies.list():
-            authors.append(reply.author.name)
 
-        return authors
+    def add_comment(self, submission_id: str, comment_text: str):
+        """
+        Add a comment to a specific Reddit submission.
+        
+        Args:
+            submission_id (str): The ID of the submission to comment on.
+            comment_text (str): The text of the comment to post.
+        """
+        submission = self.reddit.submission(id=submission_id)
+        submission.reply(comment_text)
 
-    @retry(times=3, interval=[1, 5, 10])
-    def add_reply(self, comment_id: str, reply_text: str):
+    def update_comment(self, comment_id: str, new_body: str):
         """
-        Load a specific comment by ID and submit a reply to it
+        Update an existing Reddit comment with new content.
+        
+        Args:
+            comment_id (str): The ID of the comment to update.
+            new_body (str): The new text for the comment.
         """
-        comment = self.reddit.comment(comment_id)
-        comment.reply(reply_text)
-    
-    def enable_readonly(self):
+        comment = self.reddit.comment(id=comment_id)
+        comment.edit(new_body)
+
+    def delete_comment(self, comment_id: str):
         """
-        Enable read-only mode, useful for dry run
+        Delete a specific Reddit comment.
+        
+        Args:
+            comment_id (str): The ID of the comment to delete.
         """
-        self.reddit.read_only = True
+        comment = self.reddit.comment(id=comment_id)
+        comment.delete()
