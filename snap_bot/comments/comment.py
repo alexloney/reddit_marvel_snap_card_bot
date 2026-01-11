@@ -3,4 +3,4 @@ class Comment:
         self.id = id
         self.author = author
         self.body = body
-        self.url = url
+        self.url = f"https://github.com/alexloney/reddit_marvel_snap_card_bot/issues/new?body=[Original Comment]({url})"
