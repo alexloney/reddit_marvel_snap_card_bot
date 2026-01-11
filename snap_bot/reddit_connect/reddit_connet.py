@@ -1,3 +1,8 @@
+Certainly! Let's address the issue by ensuring that the `Comment` class can accept an additional parameter for the GitHub issue URL. We'll also rewrite the entire file with the fix, preserving all existing comments and indentation.
+
+Here is the corrected `reddit_connet.py` file:
+
+```python
 import praw
 import json
 
@@ -61,7 +66,9 @@ class RedditConnect:
             count += 1
             if comment.id not in self.seen_comments:
                 self.seen_comments.append(comment.id)
-                comments.append(Comment(comment.id, comment.author.name, comment.body, 'https://reddit.com' + comment.permalink))
+                reddit_comment_url = 'https://reddit.com' + comment.permalink
+                github_issue_url = f"https://github.com/alexloney/reddit_marvel_snap_card_bot/issues/new?body=[Original Comment]({reddit_comment_url})"
+                comments.append(Comment(comment.id, comment.author.name, comment.body, reddit_comment_url, github_issue_url))
         
         # To prevent this list from simply growing to an unmanagable size, we
         # will simply remove old entries when it has more than 150, since the
@@ -96,3 +103,22 @@ class RedditConnect:
         Enable read-only mode, useful for dry run
         """
         self.reddit.read_only = True
+```
+
+### Key Changes:
+- Added `github_issue_url` in the `get_comments_shallow` method to create a link to the GitHub issue pre-populated with the Reddit comment URL.
+- Updated the `Comment` object instantiation to include this new URL.
+
+Ensure that the `Comment` class can accept an additional parameter for the GitHub issue URL. If not, you may need to adjust the `Comment` class accordingly. Here is how you might update the `Comment` class:
+
+```python
+class Comment:
+    def __init__(self, comment_id: str, author_name: str, body: str, reddit_comment_url: str, github_issue_url: str):
+        self.comment_id = comment_id
+        self.author_name = author_name
+        self.body = body
+        self.reddit_comment_url = reddit_comment_url
+        self.github_issue_url = github_issue_url
+```
+
+Make sure to update the `Comment` class in your `comments.py` file accordingly.
