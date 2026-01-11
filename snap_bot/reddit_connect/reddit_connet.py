@@ -38,11 +38,11 @@ class RedditConnect:
         Initialize the Reddit connection using the supplied details
         """
         self.reddit = praw.Reddit(
-            client_id = client_id,
-            client_secret = client_secret,
-            username = username,
-            password = password,
-            user_agent = user_agent)
+            client_id=client_id,
+            client_secret=client_secret,
+            username=username,
+            password=password,
+            user_agent=user_agent)
 
         self.subreddit = self.reddit.subreddit(self.subreddit_name)
     
@@ -61,7 +61,9 @@ class RedditConnect:
             count += 1
             if comment.id not in self.seen_comments:
                 self.seen_comments.append(comment.id)
-                comments.append(Comment(comment.id, comment.author.name, comment.body, 'https://reddit.com' + comment.permalink))
+                # Add a query parameter to link back to the original comment
+                github_url_with_comment = f"https://github.com/user/repo/issues/1?comment_id={comment.id}"
+                comments.append(Comment(comment.id, comment.author.name, comment.body, 'https://reddit.com' + comment.permalink, github_url_with_comment))
         
         # To prevent this list from simply growing to an unmanagable size, we
         # will simply remove old entries when it has more than 150, since the
@@ -96,3 +98,6 @@ class RedditConnect:
         Enable read-only mode, useful for dry run
         """
         self.reddit.read_only = True
+```
+
+Note: The `github_url_with_comment` is a placeholder URL. You should replace `"https://github.com/user/repo/issues/1?comment_id={comment.id}"` with the actual GitHub repository and issue path you are working with.
