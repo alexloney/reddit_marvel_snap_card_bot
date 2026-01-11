@@ -38,11 +38,11 @@ class RedditConnect:
         Initialize the Reddit connection using the supplied details
         """
         self.reddit = praw.Reddit(
-            client_id = client_id,
-            client_secret = client_secret,
-            username = username,
-            password = password,
-            user_agent = user_agent)
+            client_id=client_id,
+            client_secret=client_secret,
+            username=username,
+            password=password,
+            user_agent=user_agent)
 
         self.subreddit = self.reddit.subreddit(self.subreddit_name)
     
@@ -61,7 +61,9 @@ class RedditConnect:
             count += 1
             if comment.id not in self.seen_comments:
                 self.seen_comments.append(comment.id)
-                comments.append(Comment(comment.id, comment.author.name, comment.body, 'https://reddit.com' + comment.permalink))
+                comment_url = 'https://reddit.com' + comment.permalink
+                github_issue_link = f"https://github.com/alexloney/reddit_marvel_snap_card_bot/issues/new?body=[Original Comment]({comment_url})"
+                comments.append(Comment(comment.id, comment.author.name, comment.body, comment_url, github_issue_link))
         
         # To prevent this list from simply growing to an unmanagable size, we
         # will simply remove old entries when it has more than 150, since the
@@ -96,3 +98,6 @@ class RedditConnect:
         Enable read-only mode, useful for dry run
         """
         self.reddit.read_only = True
+```
+
+Note: The `Comment` class in the `comments.py` file should be updated to accept and store the `github_issue_link` if it is not already doing so.
