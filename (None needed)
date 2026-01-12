@@ -1,0 +1,217 @@
+import logging
+
+from reddit_connect import RedditConnect
+from comments import CommentParser
+from database import Database, Card
+
+logging.basicConfig(
+    format='%(asctime)s %(levelname)-8s %(message)s',
+    level=logging.INFO)
+logging.captureWarnings(True)
+
+class SnapBot:
+    """
+    Class to handle the main functionality of the Reddit bot.
+    
+    Attributes:
+        subreddit (str): The name of the subreddit to monitor.
+        config_file (str): Path to the configuration file.
+        db_update_timeout (int): Timeout for database updates in seconds.
+        max_fuzzy_distance (int): Maximum Levenshtein distance for fuzzy matching.
+        exact_match_threshold (int): Threshold for considering an exact match.
+        dry_run (bool): Flag to indicate if it's a dry run.
+        debug (bool): Flag to enable debugging.
+        client_id (str): Reddit API client ID.
+        client_secret (str): Reddit API client secret.
+        user_agent (str): User agent string for Reddit API requests.
+        reddit_username (str): Reddit username.
+        reddit_password (str): Reddit password.
+    """
+    
+    def __init__(self, subreddit, config_file, db_update_timeout,
+                 max_fuzzy_distance, exact_match_threshold, dry_run, debug,
+                 client_id, client_secret, user_agent, reddit_username, reddit_password):
+        self.subreddit = subreddit
+        self.config_file = config_file
+        self.db_update_timeout = db_update_timeout
+        self.max_fuzzy_distance = max_fuzzy_distance
+        self.exact_match_threshold = exact_match_threshold
+        self.dry_run = dry_run
+        self.debug = debug
+        self.client_id = client_id
+        self.client_secret = client_secret
+        self.user_agent = user_agent
+        self.reddit_username = reddit_username
+        self.reddit_password = reddit_password
+        self.reddit_connect = RedditConnect(client_id, client_secret, user_agent,
+                                           reddit_username, reddit_password)
+        self.comment_parser = CommentParser(max_fuzzy_distance, exact_match_threshold)
+        self.database = Database(config_file)
+
+    def run(self):
+        """
+        Main method to run the bot.
+        
+        This method fetches comments from the specified subreddit, processes them,
+        and responds accordingly.
+        """
+        logging.info('Starting Reddit bot')
+        try:
+            for comment in self.reddit_connect.get_comments(self.subreddit):
+                if not self.comment_parser.is_processed(comment.id):
+                    response = self.process_comment(comment)
+                    if response:
+                        self.respond_to_comment(comment, response)
+                        self.comment_parser.mark_as_processed(comment.id)
+        except Exception as e:
+            logging.error(f'An error occurred: {e}')
+
+    def process_comment(self, comment):
+        """
+        Process a single comment to determine the bot's response.
+        
+        Args:
+            comment (Comment): The comment object to be processed.
+            
+        Returns:
+            str: The response message or None if no response is needed.
+        """
+        try:
+            card_name = self.comment_parser.parse_comment(comment.body)
+            if card_name:
+                card = self.database.get_card(card_name)
+                if card:
+                    return self.create_response_message(comment, card)
+        except Exception as e:
+            logging.error(f'Error processing comment {comment.id}: {e}')
+        return None
+
+    def create_response_message(self, comment, card):
+        """
+        Create a response message for the given comment and card.
+        
+        Args:
+            comment (Comment): The comment object to be responded to.
+            card (Card): The card object related to the comment.
+            
+        Returns:
+            str: The response message with the updated GitHub link.
+        """
+        try:
+            github_link = self.create_github_issue_link(comment.url)
+            return f'Found card: {card.name}\nMore info: {github_link}'
+        except Exception as e:
+            logging.error(f'Error creating response message for comment {comment.id}: {e}')
+        return None
+
+    def create_github_issue_link(self, reddit_comment_url):
+        """
+        Create a GitHub issue link with the Reddit comment URL pre-filled in the body.
+        
+        Args:
+            reddit_comment_url (str): The URL of the Reddit comment.
+            
+        Returns:
+            str: The GitHub issue creation URL with the pre-filled body.
+        """
+        if not reddit_comment_url:
+            logging.warning('Reddit comment URL is missing, using default message.')
+            return 'https://github.com/alexloney/reddit_marvel_snap_card_bot/issues/new'
+        encoded_body = f'[Original Comment]({reddit_comment_url})'
+        return f'https://github.com/alexloney/reddit_marvel_snap_card_bot/issues/new?body={encoded_body}'
+
+    def respond_to_comment(self, comment, response):
+        """
+        Respond to a comment with the given message.
+        
+        Args:
+            comment (Comment): The comment object to be responded to.
+            response (str): The response message.
+        """
+        try:
+            if not self.dry_run:
+                self.reddit_connect.reply_to_comment(comment, response)
+            logging.info(f'Replied to comment {comment.id} with: {response}')
+        except Exception as e:
+            logging.error(f'Error responding to comment {comment.id}: {e}')
+
+if __name__ == '__main__':
+    # Configuration variables for running. We first apply default values to all
+    # of the variables, next we will fetch each variable from the environment
+    # variables (useful for running in a Docker container), overriding all default
+    # values. Finally, we will again fetch each variable from the CLI arguments
+    # as the final say in the variable value
+    subreddit = ''
+    config_file = ''
+    db_update_timeout = 60*60*24
+    max_fuzzy_distance = 2
+    exact_match_threshold = 3
+    dry_run = False
+    debug = False
+    client_id = ''
+    client_secret = ''
+    user_agent = ''
+    reddit_username = ''
+    reddit_password = ''
+
+    if os.environ.get('SUBREDDIT') is not None:
+        subreddit = os.environ.get('SUBREDDIT')
+    if os.environ.get('CONFIG_FILE') is not None:
+        config_file = os.environ.get('CONFIG_FILE')
+    if os.environ.get('DB_TIMEOUT') is not None:
+        db_update_timeout = int(os.environ.get('DB_TIMEOUT'))
+    if os.environ.get('MAX_FUZZY_DISTANCE') is not None:
+        max_fuzzy_distance = int(os.environ.get('MAX_FUZZY_DISTANCE'))
+    if os.environ.get('EXACT_MATCH_THRESHOLD') is not None:
+        exact_match_threshold = int(os.environ.get('EXACT_MATCH_THRESHOLD'))
+    if os.environ.get('DRY_RUN') is not None:
+        dry_run = os.environ.get('DRY_RUN').lower() in ['true', '1', 't']
+    if os.environ.get('DEBUG') is not None:
+        debug = os.environ.get('DEBUG').lower() in ['true', '1', 't']
+    if os.environ.get('CLIENT_ID') is not None:
+        client_id = os.environ.get('CLIENT_ID')
+    if os.environ.get('CLIENT_SECRET') is not None:
+        client_secret = os.environ.get('CLIENT_SECRET')
+    if os.environ.get('USER_AGENT') is not None:
+        user_agent = os.environ.get('USER_AGENT')
+    if os.environ.get('REDDIT_USERNAME') is not None:
+        reddit_username = os.environ.get('REDDIT_USERNAME')
+    if os.environ.get('REDDIT_PASSWORD') is not None:
+        reddit_password = os.environ.get('REDDIT_PASSWORD')
+
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(description='Reddit bot for Marvel Snap card information.')
+    parser.add_argument('--subreddit', type=str, help='Subreddit to monitor')
+    parser.add_argument('--config-file', type=str, help='Path to the configuration file')
+    parser.add_argument('--db-timeout', type=int, help='Timeout for database updates in seconds')
+    parser.add_argument('--max-fuzzy-distance', type=int, help='Maximum Levenshtein distance for fuzzy matching')
+    parser.add_argument('--exact-match-threshold', type=int, help='Threshold for considering an exact match')
+    parser.add_argument('--dry-run', action='store_true', help='Flag to indicate if it\'s a dry run')
+    parser.add_argument('--debug', action='store_true', help='Enable debugging')
+    parser.add_argument('--client-id', type=str, help='Reddit API client ID')
+    parser.add_argument('--client-secret', type=str, help='Reddit API client secret')
+    parser.add_argument('--user-agent', type=str, help='User agent string for Reddit API requests')
+    parser.add_argument('--reddit-username', type=str, help='Reddit username')
+    parser.add_argument('--reddit-password', type=str, help='Reddit password')
+
+    args = parser.parse_args()
+
+    # Override environment variables with command line arguments
+    subreddit = args.subreddit or subreddit
+    config_file = args.config_file or config_file
+    db_update_timeout = args.db_timeout or db_update_timeout
+    max_fuzzy_distance = args.max_fuzzy_distance or max_fuzzy_distance
+    exact_match_threshold = args.exact_match_threshold or exact_match_threshold
+    dry_run = args.dry_run or dry_run
+    debug = args.debug or debug
+    client_id = args.client_id or client_id
+    client_secret = args.client_secret or client_secret
+    user_agent = args.user_agent or user_agent
+    reddit_username = args.reddit_username or reddit_username
+    reddit_password = args.reddit_password or reddit_password
+
+    # Initialize and run the bot
+    bot = SnapBot(subreddit, config_file, db_update_timeout,
+                  max_fuzzy_distance, exact_match_threshold, dry_run, debug,
+                  client_id, client_secret, user_agent, reddit_username, reddit_password)
+    bot.run()
