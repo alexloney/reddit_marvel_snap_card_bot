@@ -1,8 +1,14 @@
+import datetime
 import logging
+import argparse
+import os
+import sys
+import time
 
+from database import Database, Card
 from reddit_connect import RedditConnect
 from comments import CommentParser
-from database import Database, Card
+import utils
 
 logging.basicConfig(
     format='%(asctime)s %(levelname)-8s %(message)s',
@@ -10,24 +16,6 @@ logging.basicConfig(
 logging.captureWarnings(True)
 
 class SnapBot:
-    """
-    Class to handle the main functionality of the Reddit bot.
-    
-    Attributes:
-        subreddit (str): The name of the subreddit to monitor.
-        config_file (str): Path to the configuration file.
-        db_update_timeout (int): Timeout for database updates in seconds.
-        max_fuzzy_distance (int): Maximum Levenshtein distance for fuzzy matching.
-        exact_match_threshold (int): Threshold for considering an exact match.
-        dry_run (bool): Flag to indicate if it's a dry run.
-        debug (bool): Flag to enable debugging.
-        client_id (str): Reddit API client ID.
-        client_secret (str): Reddit API client secret.
-        user_agent (str): User agent string for Reddit API requests.
-        reddit_username (str): Reddit username.
-        reddit_password (str): Reddit password.
-    """
-    
     def __init__(self, subreddit, config_file, db_update_timeout,
                  max_fuzzy_distance, exact_match_threshold, dry_run, debug,
                  client_id, client_secret, user_agent, reddit_username, reddit_password):
@@ -43,91 +31,27 @@ class SnapBot:
         self.user_agent = user_agent
         self.reddit_username = reddit_username
         self.reddit_password = reddit_password
-        self.reddit_connect = RedditConnect(client_id, client_secret, user_agent,
-                                           reddit_username, reddit_password)
-        self.comment_parser = CommentParser(max_fuzzy_distance, exact_match_threshold)
+
         self.database = Database(config_file)
+        self.comment_parser = CommentParser(max_fuzzy_distance, exact_match_threshold)
+        self.reddit_connect = RedditConnect(client_id, client_secret, user_agent, reddit_username, reddit_password)
 
     def run(self):
-        """
-        Main method to run the bot.
-        
-        This method fetches comments from the specified subreddit, processes them,
-        and responds accordingly.
-        """
         logging.info('Starting Reddit bot')
         try:
-            for comment in self.reddit_connect.get_comments(self.subreddit):
-                if not self.comment_parser.is_processed(comment.id):
-                    response = self.process_comment(comment)
-                    if response:
-                        self.respond_to_comment(comment, response)
-                        self.comment_parser.mark_as_processed(comment.id)
+            for comment in self.reddit_connect.stream_comments(self.subreddit):
+                card_name = self.comment_parser.parse_comment(comment.body)
+                if card_name:
+                    card_info = self.database.get_card_info(card_name)
+                    if card_info:
+                        response = f"Found information about {card_name}:\n{card_info}"
+                    else:
+                        response = f"No information found for {card_name}."
+                    self.respond_to_comment(comment, response)
         except Exception as e:
             logging.error(f'An error occurred: {e}')
 
-    def process_comment(self, comment):
-        """
-        Process a single comment to determine the bot's response.
-        
-        Args:
-            comment (Comment): The comment object to be processed.
-            
-        Returns:
-            str: The response message or None if no response is needed.
-        """
-        try:
-            card_name = self.comment_parser.parse_comment(comment.body)
-            if card_name:
-                card = self.database.get_card(card_name)
-                if card:
-                    return self.create_response_message(comment, card)
-        except Exception as e:
-            logging.error(f'Error processing comment {comment.id}: {e}')
-        return None
-
-    def create_response_message(self, comment, card):
-        """
-        Create a response message for the given comment and card.
-        
-        Args:
-            comment (Comment): The comment object to be responded to.
-            card (Card): The card object related to the comment.
-            
-        Returns:
-            str: The response message with the updated GitHub link.
-        """
-        try:
-            github_link = self.create_github_issue_link(comment.url)
-            return f'Found card: {card.name}\nMore info: {github_link}'
-        except Exception as e:
-            logging.error(f'Error creating response message for comment {comment.id}: {e}')
-        return None
-
-    def create_github_issue_link(self, reddit_comment_url):
-        """
-        Create a GitHub issue link with the Reddit comment URL pre-filled in the body.
-        
-        Args:
-            reddit_comment_url (str): The URL of the Reddit comment.
-            
-        Returns:
-            str: The GitHub issue creation URL with the pre-filled body.
-        """
-        if not reddit_comment_url:
-            logging.warning('Reddit comment URL is missing, using default message.')
-            return 'https://github.com/alexloney/reddit_marvel_snap_card_bot/issues/new'
-        encoded_body = f'[Original Comment]({reddit_comment_url})'
-        return f'https://github.com/alexloney/reddit_marvel_snap_card_bot/issues/new?body={encoded_body}'
-
     def respond_to_comment(self, comment, response):
-        """
-        Respond to a comment with the given message.
-        
-        Args:
-            comment (Comment): The comment object to be responded to.
-            response (str): The response message.
-        """
         try:
             if not self.dry_run:
                 self.reddit_connect.reply_to_comment(comment, response)

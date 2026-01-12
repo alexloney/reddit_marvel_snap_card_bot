@@ -64,35 +64,36 @@ if __name__ == '__main__':
     if os.environ.get('REDDIT_PASSWORD') is not None:
         reddit_password = os.environ.get('REDDIT_PASSWORD')
 
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(description='Reddit Marvel Snap Card Bot')
+    parser.add_argument('--subreddit', type=str, help='Subreddit to monitor')
+    parser.add_argument('--config-file', type=str, help='Path to the configuration file')
+    parser.add_argument('--db-timeout', type=int, default=60*60*24, help='Timeout for database updates in seconds')
+    parser.add_argument('--max-fuzzy-distance', type=int, default=2, help='Maximum Levenshtein distance for fuzzy matching')
+    parser.add_argument('--exact-match-threshold', type=int, default=3, help='Threshold for considering an exact match')
+    parser.add_argument('--dry-run', action='store_true', help='Flag to indicate if it\'s a dry run')
+    parser.add_argument('--debug', action='store_true', help='Flag to enable debugging')
+    parser.add_argument('--client-id', type=str, help='Reddit API client ID')
+    parser.add_argument('--client-secret', type=str, help='Reddit API client secret')
+    parser.add_argument('--user-agent', type=str, help='User agent string for Reddit API requests')
+    parser.add_argument('--reddit-username', type=str, help='Reddit username')
+    parser.add_argument('--reddit-password', type=str, help='Reddit password')
+
     args = parser.parse_args()
 
-    subreddit = args.subreddit
-    config_file = args.config_file
-    db_update_timeout = args.database_update_timeout
-    max_fuzzy_distance = args.max_fuzzy_distance
-    exact_match_threshold = args.exact_match_threshold
-    dry_run = args.dry_run
-    debug = args.debug
-    client_id = args.client_id
-    client_secret = args.client_secret
-    user_agent = args.user_agent
-    reddit_username = args.reddit_username
-    reddit_password = args.reddit_password
-
-    logging.info('Subreddit: ' + subreddit)
-    logging.info('Config File: ' + config_file)
-    logging.info('DB Update Timeout: ' + str(db_update_timeout))
-    logging.info('Max Fuzzing Distance: ' + str(max_fuzzy_distance))
-    logging.info('Exact Match Threshold: ' + str(exact_match_threshold))
-    logging.info('Dry Run: ' + str(dry_run))
-    logging.info('Debug: ' + str(debug))
-    logging.info('Client ID: ' + client_id)
-    logging.info('User Agent: ' + user_agent)
-    logging.info('Reddit Username: ' + reddit_username)
-
-    if debug:
-        logging.getLogger("").setLevel(logging.DEBUG)
-        logging.debug('Debug logging enabled')
+    # Override environment variables with command line arguments
+    subreddit = args.subreddit or subreddit
+    config_file = args.config_file or config_file
+    db_update_timeout = args.db_timeout or db_update_timeout
+    max_fuzzy_distance = args.max_fuzzy_distance or max_fuzzy_distance
+    exact_match_threshold = args.exact_match_threshold or exact_match_threshold
+    dry_run = args.dry_run or dry_run
+    debug = args.debug or debug
+    client_id = args.client_id or client_id
+    client_secret = args.client_secret or client_secret
+    user_agent = args.user_agent or user_agent
+    reddit_username = args.reddit_username or reddit_username
+    reddit_password = args.reddit_password or reddit_password
 
     if len(config_file) == 0 and \
        (len(client_id) == 0 or \
@@ -198,13 +199,11 @@ if __name__ == '__main__':
                     authors = reddit_connect.get_comment_reply_author_names(comment.id)
                     if reddit_connect.get_my_username() not in authors and \
                         'MarvelSnapCardBot' not in authors:
-                        logging.info('Submitting reply')
-                        logging.debug(response)
-                        if dry_run == False:
-                            reddit_connect.add_reply(comment.id, response)
+                        logging.info('Replying to comment: ' + comment.url)
+                        if not dry_run:
+                            reddit_connect.reply_to_comment(comment, response)
                     else:
-                        logging.info('Ignoring comment, bot reply detected')
-                        
+                        logging.info('Already replied to this comment, skipping.')
 
     except KeyboardInterrupt:
-        pass
+        logging.info('Shutting down Reddit bot')

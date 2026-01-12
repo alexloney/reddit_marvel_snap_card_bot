@@ -23,7 +23,7 @@ if __name__ == '__main__':
 
     # Configuration variables for running. We first apply default values to all
     # of the variables, next we will fetch each variable from the environment
-    # variables (useful for unning in a Docker container), overriding all default
+    # variables (useful for running in a Docker container), overriding all default
     # values. Finally, we will again fetch each variable from the CLI arguments
     # as the final say in the variable value
     subreddit = ''
@@ -63,47 +63,6 @@ if __name__ == '__main__':
         reddit_username = os.environ.get('REDDIT_USERNAME')
     if os.environ.get('REDDIT_PASSWORD') is not None:
         reddit_password = os.environ.get('REDDIT_PASSWORD')
-
-    parser = argparse.ArgumentParser(description='Reddit bot for Marvel Snap card comments.')
-    parser.add_argument('--subreddit', type=str, help='Subreddit to monitor')
-    parser.add_argument('--config-file', type=str, help='Path to configuration file')
-    parser.add_argument('--db-timeout', type=int, help='Database update timeout in seconds')
-    parser.add_argument('--max-fuzzy-distance', type=int, help='Maximum Levenshtein distance for fuzzy matching')
-    parser.add_argument('--exact-match-threshold', type=int, help='Threshold for exact match')
-    parser.add_argument('--dry-run', action='store_true', help='Run the bot without making any changes')
-    parser.add_argument('--debug', action='store_true', help='Enable debug mode')
-    parser.add_argument('--client-id', type=str, help='Reddit API client ID')
-    parser.add_argument('--client-secret', type=str, help='Reddit API client secret')
-    parser.add_argument('--user-agent', type=str, help='User agent string for Reddit API requests')
-    parser.add_argument('--reddit-username', type=str, help='Reddit username')
-    parser.add_argument('--reddit-password', type=str, help='Reddit password')
-
-    args = parser.parse_args()
-
-    if args.subreddit:
-        subreddit = args.subreddit
-    if args.config_file:
-        config_file = args.config_file
-    if args.db_timeout:
-        db_update_timeout = args.db_timeout
-    if args.max_fuzzy_distance:
-        max_fuzzy_distance = args.max_fuzzy_distance
-    if args.exact_match_threshold:
-        exact_match_threshold = args.exact_match_threshold
-    if args.dry_run:
-        dry_run = True
-    if args.debug:
-        debug = True
-    if args.client_id:
-        client_id = args.client_id
-    if args.client_secret:
-        client_secret = args.client_secret
-    if args.user_agent:
-        user_agent = args.user_agent
-    if args.reddit_username:
-        reddit_username = args.reddit_username
-    if args.reddit_password:
-        reddit_password = args.reddit_password
 
     # Initialize Reddit connection
     reddit_connect = RedditConnect(client_id, client_secret, user_agent, reddit_username, reddit_password)
