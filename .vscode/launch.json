@@ -12,6 +12,18 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": ["--subreddit", "driagan_test", "--config-file", "config.json"]
+        },
+        {
+            "name": "Debug Tests (pytest)",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "pytest",
+            "args": [
+                "${file}",
+                "-sv"  // Optional: Shows output (-s) and verbose (-v)
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": false
         }
     ]
 }
