@@ -47,6 +47,9 @@ class SnapBot:
                         response = f"Found information about {card_name}:\n{card_info}"
                     else:
                         response = f"No information found for {card_name}."
+                    # Construct the GitHub issue link with pre-filled body
+                    github_link = self._construct_github_issue_link(comment.url)
+                    response += f"\n\nIf you have any issues, please report them here: {github_link}"
                     self.respond_to_comment(comment, response)
         except Exception as e:
             logging.error(f'An error occurred: {e}')
@@ -59,50 +62,21 @@ class SnapBot:
         except Exception as e:
             logging.error(f'Error responding to comment {comment.id}: {e}')
 
-if __name__ == '__main__':
-    # Configuration variables for running. We first apply default values to all
-    # of the variables, next we will fetch each variable from the environment
-    # variables (useful for running in a Docker container), overriding all default
-    # values. Finally, we will again fetch each variable from the CLI arguments
-    # as the final say in the variable value
-    subreddit = ''
-    config_file = ''
-    db_update_timeout = 60*60*24
-    max_fuzzy_distance = 2
-    exact_match_threshold = 3
-    dry_run = False
-    debug = False
-    client_id = ''
-    client_secret = ''
-    user_agent = ''
-    reddit_username = ''
-    reddit_password = ''
+    def _construct_github_issue_link(self, reddit_url):
+        """
+        Constructs a GitHub issue link with a pre-filled body containing the Reddit comment URL.
 
-    if os.environ.get('SUBREDDIT') is not None:
-        subreddit = os.environ.get('SUBREDDIT')
-    if os.environ.get('CONFIG_FILE') is not None:
-        config_file = os.environ.get('CONFIG_FILE')
-    if os.environ.get('DB_TIMEOUT') is not None:
-        db_update_timeout = int(os.environ.get('DB_TIMEOUT'))
-    if os.environ.get('MAX_FUZZY_DISTANCE') is not None:
-        max_fuzzy_distance = int(os.environ.get('MAX_FUZZY_DISTANCE'))
-    if os.environ.get('EXACT_MATCH_THRESHOLD') is not None:
-        exact_match_threshold = int(os.environ.get('EXACT_MATCH_THRESHOLD'))
-    if os.environ.get('DRY_RUN') is not None:
-        dry_run = os.environ.get('DRY_RUN').lower() in ['true', '1', 't']
-    if os.environ.get('DEBUG') is not None:
-        debug = os.environ.get('DEBUG').lower() in ['true', '1', 't']
-    if os.environ.get('CLIENT_ID') is not None:
-        client_id = os.environ.get('CLIENT_ID')
-    if os.environ.get('CLIENT_SECRET') is not None:
-        client_secret = os.environ.get('CLIENT_SECRET')
-    if os.environ.get('USER_AGENT') is not None:
-        user_agent = os.environ.get('USER_AGENT')
-    if os.environ.get('REDDIT_USERNAME') is not None:
-        reddit_username = os.environ.get('REDDIT_USERNAME')
-    if os.environ.get('REDDIT_PASSWORD') is not None:
-        reddit_password = os.environ.get('REDDIT_PASSWORD')
+        :param reddit_url: The URL of the Reddit comment.
+        :return: A string representing the GitHub issue link.
+        """
+        base_github_url = "https://github.com/your-repo/your-project/issues/new"
+        if not reddit_url:
+            logging.warning("Reddit URL is missing, cannot construct GitHub issue link.")
+            return base_github_url
+        encoded_reddit_url = utils.url_encode(reddit_url)
+        return f"{base_github_url}?body=Please%20include%20details%20about%20the%20issue.%20Reddit%20comment:%20{encoded_reddit_url}"
 
+if __name__ == "__main__":
     # Parse command line arguments
     parser = argparse.ArgumentParser(description='Reddit bot for Marvel Snap card information.')
     parser.add_argument('--subreddit', type=str, help='Subreddit to monitor')
@@ -120,22 +94,19 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    # Override environment variables with command line arguments
-    subreddit = args.subreddit or subreddit
-    config_file = args.config_file or config_file
-    db_update_timeout = args.db_timeout or db_update_timeout
-    max_fuzzy_distance = args.max_fuzzy_distance or max_fuzzy_distance
-    exact_match_threshold = args.exact_match_threshold or exact_match_threshold
-    dry_run = args.dry_run or dry_run
-    debug = args.debug or debug
-    client_id = args.client_id or client_id
-    client_secret = args.client_secret or client_secret
-    user_agent = args.user_agent or user_agent
-    reddit_username = args.reddit_username or reddit_username
-    reddit_password = args.reddit_password or reddit_password
-
     # Initialize and run the bot
-    bot = SnapBot(subreddit, config_file, db_update_timeout,
-                  max_fuzzy_distance, exact_match_threshold, dry_run, debug,
-                  client_id, client_secret, user_agent, reddit_username, reddit_password)
+    bot = SnapBot(
+        subreddit=args.subreddit,
+        config_file=args.config_file,
+        db_update_timeout=args.db_timeout,
+        max_fuzzy_distance=args.max_fuzzy_distance,
+        exact_match_threshold=args.exact_match_threshold,
+        dry_run=args.dry_run,
+        debug=args.debug,
+        client_id=args.client_id,
+        client_secret=args.client_secret,
+        user_agent=args.user_agent,
+        reddit_username=args.reddit_username,
+        reddit_password=args.reddit_password
+    )
     bot.run()

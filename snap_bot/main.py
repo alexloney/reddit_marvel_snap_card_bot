@@ -17,193 +17,104 @@ logging.basicConfig(
     level=logging.INFO)
 logging.captureWarnings(True)
 
-if __name__ == '__main__':
-    
-    logging.info('Starting Reddit bot')
+class SnapBot:
+    def __init__(self, subreddit, config_file, db_update_timeout,
+                 max_fuzzy_distance, exact_match_threshold, dry_run, debug,
+                 client_id, client_secret, user_agent, reddit_username, reddit_password):
+        self.subreddit = subreddit
+        self.config_file = config_file
+        self.db_update_timeout = db_update_timeout
+        self.max_fuzzy_distance = max_fuzzy_distance
+        self.exact_match_threshold = exact_match_threshold
+        self.dry_run = dry_run
+        self.debug = debug
+        self.client_id = client_id
+        self.client_secret = client_secret
+        self.user_agent = user_agent
+        self.reddit_username = reddit_username
+        self.reddit_password = reddit_password
 
-    # Configuration variables for running. We first apply default values to all
-    # of the variables, next we will fetch each variable from the environment
-    # variables (useful for running in a Docker container), overriding all default
-    # values. Finally, we will again fetch each variable from the CLI arguments
-    # as the final say in the variable value
-    subreddit = ''
-    config_file = ''
-    db_update_timeout = 60*60*24
-    max_fuzzy_distance = 2
-    exact_match_threshold = 3
-    dry_run = False
-    debug = False
-    client_id = ''
-    client_secret = ''
-    user_agent = ''
-    reddit_username = ''
-    reddit_password = ''
+        self.database = Database(max_fuzzy_distance, exact_match_threshold)
+        self.comment_parser = CommentParser()
+        self.reddit_connect = RedditConnect(subreddit)
 
-    if os.environ.get('SUBREDDIT') is not None:
-        subreddit = os.environ.get('SUBREDDIT')
-    if os.environ.get('CONFIG_FILE') is not None:
-        config_file = os.environ.get('CONFIG_FILE')
-    if os.environ.get('DB_TIMEOUT') is not None:
-        db_update_timeout = int(os.environ.get('DB_TIMEOUT'))
-    if os.environ.get('MAX_FUZZY_DISTANCE') is not None:
-        max_fuzzy_distance = int(os.environ.get('MAX_FUZZY_DISTANCE'))
-    if os.environ.get('EXACT_MATCH_THRESHOLD') is not None:
-        exact_match_threshold = int(os.environ.get('EXACT_MATCH_THRESHOLD'))
-    if os.environ.get('DRY_RUN') is not None:
-        dry_run = os.environ.get('DRY_RUN').lower() in ['true', '1', 't']
-    if os.environ.get('DEBUG') is not None:
-        debug = os.environ.get('DEBUG').lower() in ['true', '1', 't']
-    if os.environ.get('CLIENT_ID') is not None:
-        client_id = os.environ.get('CLIENT_ID')
-    if os.environ.get('CLIENT_SECRET') is not None:
-        client_secret = os.environ.get('CLIENT_SECRET')
-    if os.environ.get('USER_AGENT') is not None:
-        user_agent = os.environ.get('USER_AGENT')
-    if os.environ.get('REDDIT_USERNAME') is not None:
-        reddit_username = os.environ.get('REDDIT_USERNAME')
-    if os.environ.get('REDDIT_PASSWORD') is not None:
-        reddit_password = os.environ.get('REDDIT_PASSWORD')
+    def run(self):
+        logging.info('Starting Reddit bot')
+        try:
+            while True:
 
-    # Parse command line arguments
-    parser = argparse.ArgumentParser(description='Reddit Marvel Snap Card Bot')
-    parser.add_argument('--subreddit', type=str, help='Subreddit to monitor')
-    parser.add_argument('--config-file', type=str, help='Path to the configuration file')
-    parser.add_argument('--db-timeout', type=int, default=60*60*24, help='Timeout for database updates in seconds')
-    parser.add_argument('--max-fuzzy-distance', type=int, default=2, help='Maximum Levenshtein distance for fuzzy matching')
-    parser.add_argument('--exact-match-threshold', type=int, default=3, help='Threshold for considering an exact match')
-    parser.add_argument('--dry-run', action='store_true', help='Flag to indicate if it\'s a dry run')
-    parser.add_argument('--debug', action='store_true', help='Flag to enable debugging')
-    parser.add_argument('--client-id', type=str, help='Reddit API client ID')
-    parser.add_argument('--client-secret', type=str, help='Reddit API client secret')
-    parser.add_argument('--user-agent', type=str, help='User agent string for Reddit API requests')
-    parser.add_argument('--reddit-username', type=str, help='Reddit username')
-    parser.add_argument('--reddit-password', type=str, help='Reddit password')
+                # Check the current date/time and compare it to the last time the
+                # card lookup database has been updated. If it exceeds our set timeout
+                # interval, update our internal card lookup database and reset our
+                # last time we updated.
+                current_time = datetime.datetime.now()
+                if (current_time - self.last_database_update).total_seconds() > self.db_update_timeout:
+                    logging.info('Reloading card lookup database')
+                    self.database.update_card_database()
+                    self.last_database_update = datetime.datetime.now()
 
-    args = parser.parse_args()
+                # Fetch the next set of comments
+                for comment in self.reddit_connect.get_comments_shallow():
 
-    # Override environment variables with command line arguments
-    subreddit = args.subreddit or subreddit
-    config_file = args.config_file or config_file
-    db_update_timeout = args.db_timeout or db_update_timeout
-    max_fuzzy_distance = args.max_fuzzy_distance or max_fuzzy_distance
-    exact_match_threshold = args.exact_match_threshold or exact_match_threshold
-    dry_run = args.dry_run or dry_run
-    debug = args.debug or debug
-    client_id = args.client_id or client_id
-    client_secret = args.client_secret or client_secret
-    user_agent = args.user_agent or user_agent
-    reddit_username = args.reddit_username or reddit_username
-    reddit_password = args.reddit_password or reddit_password
+                    # Prevent replying to my own comments, if the author of the
+                    # comment is the bot itself, then simply ignore the comment
+                    if self.reddit_connect.get_my_username() == comment.author or \
+                        'MarvelSnapCardBot' == comment.author:
+                        continue
 
-    if len(config_file) == 0 and \
-       (len(client_id) == 0 or \
-        len(client_secret) == 0 or \
-        len(user_agent) == 0 or \
-        len(reddit_username) == 0 or \
-        len(reddit_password) == 0):
-        print('Error: Either a config file, or all config details must be provided')
-        sys.exit(1)
-    
-    if len(subreddit) == 0:
-        print('Error: You must provide a subreddit to monitor')
-        sys.exit(1)
+                    # Parse the comment and fetch the card names from it
+                    parser = CommentParser(comment)
+                    card_names = parser.parse()
 
-    database = Database(max_fuzzy_distance, exact_match_threshold)
+                    # Match all of the cards then remove duplicates
+                    matched_cards = []
+                    for name in card_names:
+                        for item in self.database.search(name):
+                            matched_cards.append(item)
+                    unique_cards = utils.remove_duplicate_cards(matched_cards)
 
-    # Perform our initial database update to get the first version of our card
-    # lookups
-    logging.info('Loading card lookup database')
-    database.update_card_database()
-    last_database_update = datetime.datetime.now()
-    logging.info('Next DB update in ' + str(db_update_timeout) + 's')
-
-    logging.info('Establishing Reddit connection (' + subreddit + ')')
-    if len(config_file) > 0:
-        logging.info('Using Reddit config file')
-        reddit_connect = RedditConnect(subreddit)
-        reddit_connect.init_reddit_config(config_file)
-    else:
-        logging.info('Using supplied id/secret/agent/user/pass')
-        reddit_connect = RedditConnect(subreddit)
-        reddit_connect.init_reddit_args(client_id, client_secret, user_agent, reddit_username, reddit_password)
-    logging.info('Reddit connection established')
-
-    # Continue forever...or until killed
-    try:
-        while True:
-
-            # Check the current date/time and compare it to the last time the
-            # card lookup database has been updated. If it exceeds our set timeout
-            # interval, update our internal card lookup database and reset our
-            # last time we updated.
-            current_time = datetime.datetime.now()
-            if (current_time - last_database_update).total_seconds() > db_update_timeout:
-                logging.info('Reloading card lookup database')
-                database.update_card_database()
-                last_database_update = datetime.datetime.now()
-
-            # Fetch the next set of comments
-            for comment in reddit_connect.get_comments_shallow():
-
-                # Prevent replying to my own comments, if the author of the
-                # comment is the bot itself, then simply ignore the comment
-                if reddit_connect.get_my_username() == comment.author or \
-                    'MarvelSnapCardBot' == comment.author:
-                    continue
-
-                # Parse the comment and fetch the card names from it
-                parser = CommentParser(comment)
-                card_names = parser.parse()
-
-                # Match all of the cards then remove duplicates
-                matched_cards = []
-                for name in card_names:
-                    for item in database.search(name):
-                        matched_cards.append(item)
-                unique_cards = utils.remove_duplicate_cards(matched_cards)
-
-                # Resolve all tokens to their base cards if possible
-                unique_cards = utils.resolve_tokens_to_base(database, unique_cards)
-                
-                # Resolving tokens to cards could add duplicate cards, since a
-                # card like Snowguard or Nico call their summon cards the same
-                # as the base card. This could result in duplicating cards and
-                # causing a much larger output than expected. Removing
-                # duplicates here before we expand back into tokens will resolve
-                # this issue.
-                unique_cards = utils.remove_duplicate_cards(unique_cards)
-
-                # Now reverse the above and resolve all tokens from all base cards
-                unique_cards = utils.insert_tokens_from_cards(database, unique_cards)
-
-                # Combine all of the cards from above together into a single
-                # output message
-                response = ''
-                for name in unique_cards:
-                    response += str(name)
-                
-                # If our response has a length, this means we identified a card
-                # request and correctly matched it to a card to reply with. If
-                # that is the case, we may proceed with the request
-                if len(response) > 0:
-                    github_url = f"https://github.com/alexloney/reddit_marvel_snap_card_bot/issues/new?body=Detected%20comment:%20{comment.url}%0A%0ACard%20request:%20{response}"
-                    response += f"*Message generated by {reddit_connect.get_my_username()}. Use syntax [[card_name]] to get a reply like this. Report any issues on [github]({github_url}).*"
-
-                    logging.info('Detected comment: ' + comment.url)
+                    # Resolve all tokens to their base cards if possible
+                    unique_cards = utils.resolve_tokens_to_base(self.database, unique_cards)
                     
-                    # Obtaining the authors is a more expensive operation, so we
-                    # only do this at the very end before we submit the reply.
-                    # In this case, we obtain the author names and verify that
-                    # our username is not in a reply to this comment. This is to
-                    # prevent us from replying to the same comment multiple times
-                    authors = reddit_connect.get_comment_reply_author_names(comment.id)
-                    if reddit_connect.get_my_username() not in authors and \
-                        'MarvelSnapCardBot' not in authors:
-                        logging.info('Replying to comment: ' + comment.url)
-                        if not dry_run:
-                            reddit_connect.reply_to_comment(comment, response)
-                    else:
-                        logging.info('Already replied to this comment, skipping.')
+                    # Resolving tokens to cards could add duplicate cards, since a
+                    # card like Snowguard or Nico call their summon cards the same
+                    # as the base card. This could result in duplicating cards and
+                    # causing a much larger output than expected. Removing
+                    # duplicates here before we expand back into tokens will resolve
+                    # this issue.
+                    unique_cards = utils.remove_duplicate_cards(unique_cards)
 
-    except KeyboardInterrupt:
-        logging.info('Shutting down Reddit bot')
+                    # Now reverse the above and resolve all tokens from all base cards
+                    unique_cards = utils.insert_tokens_from_cards(self.database, unique_cards)
+
+                    # Combine all of the cards from above together into a single
+                    # output message
+                    response = ''
+                    for name in unique_cards:
+                        response += str(name)
+                    
+                    # If our response has a length, this means we identified a card
+                    # request and correctly matched it to a card to reply with. If
+                    # that is the case, we may proceed with the request
+                    if len(response) > 0:
+                        github_url = f"https://github.com/alexloney/reddit_marvel_snap_card_bot/issues/new?body=Detected%20comment:%20{comment.url}%0A%0ACard%20request:%20{response}"
+                        response += f"*Message generated by {self.reddit_connect.get_my_username()}. Use syntax [[card_name]] to get a reply like this. Report any issues on [github]({github_url}).*"
+
+                        logging.info('Detected comment: ' + comment.url)
+                        
+                        # Obtaining the authors is a more expensive operation, so we
+                        # only do this at the very end before we submit the reply.
+                        # In this case, we obtain the author names and verify that
+                        # our username is not in a reply to this comment. This is to
+                        # prevent us from replying to the same comment multiple times
+                        authors = self.reddit_connect.get_comment_reply_author_names(comment.id)
+                        if self.reddit_connect.get_my_username() not in authors and \
+                            'MarvelSnapCardBot' not in authors:
+                            logging.info('Replying to comment: ' + comment.url)
+                            if not self.dry_run:
+                                self.reddit_connect.reply_to_comment(comment, response)
+                        else:
+                            logging.info('Already replied to this comment, skipping.')
+
+        except KeyboardInterrupt:
+            logging.info('Shutting down Reddit bot')

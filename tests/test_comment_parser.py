@@ -17,65 +17,32 @@ logging.basicConfig(
     level=logging.INFO)
 logging.captureWarnings(True)
 
-if __name__ == '__main__':
-    
-    logging.info('Starting Reddit bot')
+class SnapBot:
+    def __init__(self, subreddit, config_file, db_update_timeout,
+                 max_fuzzy_distance, exact_match_threshold, dry_run, debug,
+                 client_id, client_secret, user_agent, reddit_username, reddit_password):
+        self.subreddit = subreddit
+        self.config_file = config_file
+        self.db_update_timeout = db_update_timeout
+        self.max_fuzzy_distance = max_fuzzy_distance
+        self.exact_match_threshold = exact_match_threshold
+        self.dry_run = dry_run
+        self.debug = debug
+        self.client_id = client_id
+        self.client_secret = client_secret
+        self.user_agent = user_agent
+        self.reddit_username = reddit_username
+        self.reddit_password = reddit_password
 
-    # Configuration variables for running. We first apply default values to all
-    # of the variables, next we will fetch each variable from the environment
-    # variables (useful for running in a Docker container), overriding all default
-    # values. Finally, we will again fetch each variable from the CLI arguments
-    # as the final say in the variable value
-    subreddit = ''
-    config_file = ''
-    db_update_timeout = 60*60*24
-    max_fuzzy_distance = 2
-    exact_match_threshold = 3
-    dry_run = False
-    debug = False
-    client_id = ''
-    client_secret = ''
-    user_agent = ''
-    reddit_username = ''
-    reddit_password = ''
+        self.database = Database(config_file)
+        self.comment_parser = CommentParser(max_fuzzy_distance, exact_match_threshold)
+        self.reddit_connect = RedditConnect(client_id, client_secret, user_agent, reddit_username, reddit_password)
 
-    if os.environ.get('SUBREDDIT') is not None:
-        subreddit = os.environ.get('SUBREDDIT')
-    if os.environ.get('CONFIG_FILE') is not None:
-        config_file = os.environ.get('CONFIG_FILE')
-    if os.environ.get('DB_TIMEOUT') is not None:
-        db_update_timeout = int(os.environ.get('DB_TIMEOUT'))
-    if os.environ.get('MAX_FUZZY_DISTANCE') is not None:
-        max_fuzzy_distance = int(os.environ.get('MAX_FUZZY_DISTANCE'))
-    if os.environ.get('EXACT_MATCH_THRESHOLD') is not None:
-        exact_match_threshold = int(os.environ.get('EXACT_MATCH_THRESHOLD'))
-    if os.environ.get('DRY_RUN') is not None:
-        dry_run = os.environ.get('DRY_RUN').lower() in ['true', '1', 't']
-    if os.environ.get('DEBUG') is not None:
-        debug = os.environ.get('DEBUG').lower() in ['true', '1', 't']
-    if os.environ.get('CLIENT_ID') is not None:
-        client_id = os.environ.get('CLIENT_ID')
-    if os.environ.get('CLIENT_SECRET') is not None:
-        client_secret = os.environ.get('CLIENT_SECRET')
-    if os.environ.get('USER_AGENT') is not None:
-        user_agent = os.environ.get('USER_AGENT')
-    if os.environ.get('REDDIT_USERNAME') is not None:
-        reddit_username = os.environ.get('REDDIT_USERNAME')
-    if os.environ.get('REDDIT_PASSWORD') is not None:
-        reddit_password = os.environ.get('REDDIT_PASSWORD')
-
-    # Initialize Reddit connection
-    reddit_connect = RedditConnect(client_id, client_secret, user_agent, reddit_username, reddit_password)
-    subreddit_instance = reddit_connect.get_subreddit(subreddit)
-
-    # Initialize database
-    db = Database(config_file)
-
-    # Main loop to process comments
-    while True:
+    def run(self):
+        logging.info('Starting Reddit bot')
         try:
-            for comment in subreddit_instance.stream.comments():
-                if dry_run:
+            for comment in self.reddit_connect.stream_comments(self.subreddit):
+                if self.dry_run:
                     logging.info(f'Dry run: Processing comment {comment.id}')
                 else:
                     logging.info(f'Processing comment {comment.id}')
@@ -89,7 +56,7 @@ if __name__ == '__main__':
                 # Construct the response message
                 response_message = "Here are the cards you requested:\n"
                 for result in results:
-                    card = db.get_card_by_name(result, max_fuzzy_distance, exact_match_threshold)
+                    card = self.database.get_card_by_name(result, self.max_fuzzy_distance, self.exact_match_threshold)
                     if card:
                         response_message += f"- {card.name}: {card.description}\n"
                     else:
@@ -105,7 +72,7 @@ if __name__ == '__main__':
                 response_message += f"\nIf you encounter any issues, please [report here]({github_issue_url})."
 
                 # Post the response
-                if not dry_run:
+                if not self.dry_run:
                     comment.reply(response_message)
                     logging.info(f'Replied to comment {comment.id}')
 
