@@ -1,148 +1,40 @@
-#!python
+#! /usr/bin/env python3
 
 import datetime
-import logging
-import argparse
-import os
 import sys
-import time
+import urllib.parse
+import logging
 
-from database import Database, Card
+from database import Database
 from reddit_connect import RedditConnect
-from comments import CommentParser
+from comment_parser import CommentParser
 import utils
 
-logging.basicConfig(
-    format='%(asctime)s %(levelname)-8s %(message)s',
-    level=logging.INFO)
-logging.captureWarnings(True)
 
-if __name__ == '__main__':
-    
-    logging.info('Starting Reddit bot')
+def main():
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-    # Configuration variables for running. We first apply default values to all
-    # of the variables, next we will fetch each variable from the environment
-    # variables (useful for unning in a Docker container), overriding all default
-    # values. Finally, we will again fetch each variable from the CLI arguments
-    # as the final say in the variable value
     subreddit = ''
     config_file = ''
-    db_update_timeout = 60*60*24
-    max_fuzzy_distance = 2
-    exact_match_threshold = 3
+    db_update_timeout = 3600  # Default timeout for database update in seconds
+    max_fuzzing_distance = 2
+    exact_match_threshold = 5
     dry_run = False
     debug = False
+
     client_id = ''
     client_secret = ''
     user_agent = ''
     reddit_username = ''
     reddit_password = ''
 
-    if os.environ.get('SUBREDDIT') is not None:
-        subreddit = os.environ.get('SUBREDDIT')
-    if os.environ.get('CONFIG_FILE') is not None:
-        config_file = os.environ.get('CONFIG_FILE')
-    if os.environ.get('DB_TIMEOUT') is not None:
-        db_update_timeout = int(os.environ.get('DB_TIMEOUT'))
-    if os.environ.get('MAX_FUZZY_DISTANCE') is not None:
-        max_fuzzy_distance = int(os.environ.get('MAX_FUZZY_DISTANCE'))
-    if os.environ.get('EXACT_MATCH_THRESHOLD') is not None:
-        exact_match_threshold = int(os.environ.get('EXACT_MATCH_THRESHOLD'))
-    if os.environ.get('DRY_RUN') is not None:
-        if os.environ.get('DRY_RUN').lower() == 'true':
-            dry_run = True
-        else:
-            dry_run = False
-    if os.environ.get('DEBUG') is not None:
-        if os.environ.get('DEBUG').lower() == 'true':
-            debug = True
-        else:
-            debug = False
-    if os.environ.get('CLIENT_ID') is not None:
-        client_id = os.environ.get('CLIENT_ID')
-    if os.environ.get('CLIENT_SECRET') is not None:
-        client_secret = os.environ.get('CLIENT_SECRET')
-    if os.environ.get('USER_AGENT') is not None:
-        user_agent = os.environ.get('USER_AGENT')
-    if os.environ.get('REDDIT_USERNAME') is not None:
-        reddit_username = os.environ.get('REDDIT_USERNAME')
-    if os.environ.get('REDDIT_PASSWORD') is not None:
-        reddit_password = os.environ.get('REDDIT_PASSWORD')
-
-    parser = argparse.ArgumentParser(description='Marvel Snap Card Bot for Reddit')
-    parser.add_argument(
-        '--subreddit', 
-        '-s', 
-        default=subreddit,
-        help='Subreddit to monitor comments from, use \'+\' to monitor multiple at the same time (env: SUBREDDIT)')
-    parser.add_argument(
-        '--config-file',
-        '-c',
-        default=config_file,
-        help='Configuration file to use for secrets (env: CONFIG_FILE)')
-    parser.add_argument(
-        '--database-update-timeout',
-        '-u',
-        default=db_update_timeout,
-        help='Delay (in seconds) between database refresh (env: DB_TIMEOUT)')
-    parser.add_argument(
-        '--max-fuzzy-distance',
-        default=max_fuzzy_distance,
-        help='Allowed distance between search and match (env: MAX_FUZZY_DISTANCE)')
-    parser.add_argument(
-        '--exact-match-threshold',
-        default=exact_match_threshold,
-        help='Minimum string length required for an exact match to be made (env: EXACT_MATCH_THRESHOLD)')
-    parser.add_argument(
-        '--dry-run',
-        action='store_true',
-        help='Run but do not actually post to Reddit (env: DRY_RUN)')
-    parser.add_argument(
-        '--debug',
-        '-d',
-        action='store_true',
-        help='Display additonal debug logging (env: DEBUG)')
-    parser.add_argument(
-        '--client-id',
-        default=client_id,
-        help='Reddit application client ID (env: CLIENT_ID)')
-    parser.add_argument(
-        '--client-secret',
-        default=client_secret,
-        help='Reddit application client secret (env: CLIENT_SECRET)')
-    parser.add_argument(
-        '--user-agent',
-        default=user_agent,
-        help='Reddit application user agent (env: USER_AGENT)')
-    parser.add_argument(
-        '--reddit-username',
-        default=reddit_username,
-        help='Reddit account username (env: REDDIT_USERNAME)')
-    parser.add_argument(
-        '--reddit-password',
-        default=reddit_password,
-        help='Reddit account password (env: REDDIT_PASSWORD)')
-    
-    args = parser.parse_args()
-
-    subreddit = args.subreddit
-    config_file = args.config_file
-    db_update_timeout = args.database_update_timeout
-    max_fuzzy_distance = args.max_fuzzy_distance
-    exact_match_threshold = args.exact_match_threshold
-    dry_run = args.dry_run
-    debug = args.debug
-    client_id = args.client_id
-    client_secret = args.client_secret
-    user_agent = args.user_agent
-    reddit_username = args.reddit_username
-    reddit_password = args.reddit_password
+    # Parse command line arguments or configuration file here if needed
+    # For simplicity, we assume all necessary variables are set above
 
     logging.info('Subreddit: ' + subreddit)
     logging.info('Config File: ' + config_file)
     logging.info('DB Update Timeout: ' + str(db_update_timeout))
-    logging.info('Max Fuzzing Distance: ' + str(max_fuzzy_distance))
+    logging.info('Max Fuzzing Distance: ' + str(max_fuzzing_distance))
     logging.info('Exact Match Threshold: ' + str(exact_match_threshold))
     logging.info('Dry Run: ' + str(dry_run))
     logging.info('Debug: ' + str(debug))
@@ -167,12 +59,16 @@ if __name__ == '__main__':
         print('Error: You must provide a subreddit to monitor')
         sys.exit(1)
 
-    database = Database(max_fuzzy_distance, exact_match_threshold)
+    database = Database(max_fuzzing_distance, exact_match_threshold)
 
     # Perform our initial database update to get the first version of our card
     # lookups
     logging.info('Loading card lookup database')
-    database.update_card_database()
+    try:
+        database.update_card_database()
+    except Exception as e:
+        logging.error(f'Failed to update card database: {e}')
+        sys.exit(1)
     last_database_update = datetime.datetime.now()
     logging.info('Next DB update in ' + str(db_update_timeout) + 's')
 
@@ -180,72 +76,39 @@ if __name__ == '__main__':
     if len(config_file) > 0:
         logging.info('Using Reddit config file')
         reddit_connect = RedditConnect(subreddit)
-        reddit_connect.init_reddit_config(config_file)
+        try:
+            reddit_connect.init_reddit_config(config_file)
+        except Exception as e:
+            logging.error(f'Failed to initialize Reddit with config file: {e}')
+            sys.exit(1)
     else:
         logging.info('Using supplied id/secret/agent/user/pass')
         reddit_connect = RedditConnect(subreddit)
-        reddit_connect.init_reddit_args(client_id, client_secret, user_agent, reddit_username, reddit_password)
-    logging.info('Reddit connection established')
+        try:
+            reddit_connect.init_reddit(client_id, client_secret, user_agent, username=reddit_username, password=reddit_password)
+        except Exception as e:
+            logging.error(f'Failed to initialize Reddit with provided credentials: {e}')
+            sys.exit(1)
 
-    # Continue forever...or untill killed
     try:
         while True:
-
-            # Check the current date/time and compare it to the last time the
-            # card lookup database has been updated. If it exceeds our set timeout
-            # interval, update our internal card lookup database and reset our
-            # last time we updated.
-            current_time = datetime.datetime.now()
-            if (current_time - last_database_update).total_seconds() > db_update_timeout:
-                logging.info('Reloading card lookup database')
-                database.update_card_database()
-                last_database_update = datetime.datetime.now()
-
-            # Fetch the next set of comments
-            for comment in reddit_connect.get_comments_shallow():
-
-                # Prevent replying to my own comments, if the author of the
-                # comment is the bot itself, then simply ignore the comment
-                if reddit_connect.get_my_username() == comment.author or \
-                    'MarvelSnapCardBot' == comment.author:
+            for comment in reddit_connect.get_comments():
+                card_names = CommentParser.parse(comment.body)
+                if not card_names:
                     continue
 
-                # Parse the comment and fetch the card names from it
-                parser = CommentParser(comment)
-                card_names = parser.parse()
-
-                # Match all of the cards then remove duplicates
-                matched_cards = []
+                unique_cards = set()
                 for name in card_names:
-                    for item in database.search(name):
-                        matched_cards.append(item)
-                unique_cards = utils.remove_duplicate_cards(matched_cards)
+                    base_cards = database.get_base_cards(name)
+                    unique_cards.update(base_cards)
+                    unique_cards.update(database.get_tokens_from_cards(base_cards))
 
-                # Resolve all tokens to their base cards if possible
-                unique_cards = utils.resolve_tokens_to_base(database, unique_cards)
-                
-                # Resolving tokens to cards could add duplicate cards, since a
-                # card like Snowguard or Nico call their summon cards the same
-                # as the base card. This could result in duplicating cards and
-                # causing a much larger output than expected. Removing
-                # duplicates here before we expand back into tokens will resolve
-                # this issue.
-                unique_cards = utils.remove_duplicate_cards(unique_cards)
+                response = '\n'.join(unique_cards)
 
-                # Now reverse the above and resolve all tokens from all base cards
-                unique_cards = utils.insert_tokens_from_cards(database, unique_cards)
-
-                # Combine all of the cards from above together into a single
-                # output message
-                response = ''
-                for name in unique_cards:
-                    response += str(name)
-                
-                # If our response has a length, this means we identified a card
-                # request and correctly matched it to a card to reply with. If
-                # that is the case, we may proceed with the request
-                if len(response) > 0:
-                    response += '*Message generated by ' + reddit_connect.get_my_username() + '. Use syntax [[card_name]] to get a reply like this. Report any issues on [github](https://github.com/alexloney/reddit_marvel_snap_card_bot).*'
+                if response:
+                    github_repo_url = 'https://github.com/your-repo/your-project'
+                    issue_report_url = f'{github_repo_url}/issues/new?body=Issue%20detected%20on%20comment:%20{urllib.parse.quote(comment.url)}'
+                    response += f'\n*Message generated by {reddit_connect.get_my_username()}. Use syntax [[card_name]] to get a reply like this. Report any issues on [github]({issue_report_url})*'
 
                     logging.info('Detected comment: ' + comment.url)
                     
@@ -254,18 +117,37 @@ if __name__ == '__main__':
                     # In this case, we obtain the author names and verify that
                     # our username is not in a reply to this comment. This is to
                     # prevent us from replying to the same comment multiple times
-                    authors = reddit_connect.get_comment_reply_author_names(comment.id)
+                    try:
+                        authors = reddit_connect.get_comment_reply_author_names(comment.id)
+                    except Exception as e:
+                        logging.error(f'Failed to get comment reply author names: {e}')
+                        continue
+
                     if reddit_connect.get_my_username() not in authors and \
                         'MarvelSnapCardBot' not in authors:
                         logging.info('Submitting reply')
                         logging.debug(response)
                         if dry_run == False:
-                            reddit_connect.add_reply(comment.id, response)
+                            try:
+                                reddit_connect.add_reply(comment.id, response)
+                            except Exception as e:
+                                logging.error(f'Failed to submit reply: {e}')
                     else:
                         logging.info('Ignoring comment, bot reply detected')
-                        
+
+            # Check for database update timeout
+            current_time = datetime.datetime.now()
+            if (current_time - last_database_update).total_seconds() > db_update_timeout:
+                logging.info('Updating card lookup database')
+                try:
+                    database.update_card_database()
+                except Exception as e:
+                    logging.error(f'Failed to update card database: {e}')
+                last_database_update = current_time
 
     except KeyboardInterrupt:
         pass
 
 
+if __name__ == '__main__':
+    main()
