@@ -20,11 +20,11 @@ class Database:
         the download fails for any reason, this will retry up to 3 times before
         finally considering it a failure.
         """
-        session = requests.Session()
-        response = session.get(url)
+        with requests.Session() as session:
+            response = session.get(url)
 
-        if not response.ok:
-            response.raise_for_status()
+            if not response.ok:
+                response.raise_for_status()
         
         return response
 
