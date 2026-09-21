@@ -29,7 +29,7 @@ class Entry(Lookup):
 
         best_result = self.test_distance(search)
 
-        match = re.split('[^a-zA-Z0-0]+', self.name)
+        match = re.split('[^a-zA-Z0-9]+', self.name)
         if match:
             for group in match:
                 if len(group) >= self.minimum_split_match_length:
