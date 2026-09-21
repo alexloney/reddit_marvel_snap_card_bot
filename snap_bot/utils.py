@@ -34,7 +34,7 @@ def resolve_tokens_to_base(database, cards):
             # looking for a match back to the summon
             if not replaced:
                 for card in database.cards:
-                    if result[i].def_id in card.connected_cards:
+                    if not card.is_token and result[i].def_id in card.connected_cards:
                         result[i] = card
                         replaced = True
                         break
