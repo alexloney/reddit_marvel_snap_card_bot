@@ -29,7 +29,7 @@ class Entry(Lookup):
 
         best_result = self.test_distance(search)
 
-        match = re.split('[^a-zA-Z0-0]+', self.name)
+        match = re.split('[^a-zA-Z0-9]+', self.name)
         if match:
             for group in match:
                 if len(group) >= self.minimum_split_match_length:
@@ -44,7 +44,7 @@ class Entry(Lookup):
         For use when using marvelsnap.io as the source, converting the output
         into a pretty print output for display on Reddit
         """
-        self.formatted_ability = str.replace('On Reveal:', '**On Reveal:**').replace('Ongoing:', '**Ongoing:**')
+        self.formatted_ability = self.ability.replace('On Reveal:', '**On Reveal:**').replace('Ongoing:', '**Ongoing:**')
     
     def format_ability_from_html(self):
         """

@@ -85,23 +85,28 @@ if __name__ == '__main__':
         '--database-update-timeout',
         '-u',
         default=db_update_timeout,
+        type=int,
         help='Delay (in seconds) between database refresh (env: DB_TIMEOUT)')
     parser.add_argument(
         '--max-fuzzy-distance',
         default=max_fuzzy_distance,
+        type=int,
         help='Allowed distance between search and match (env: MAX_FUZZY_DISTANCE)')
     parser.add_argument(
         '--exact-match-threshold',
         default=exact_match_threshold,
+        type=int,
         help='Minimum string length required for an exact match to be made (env: EXACT_MATCH_THRESHOLD)')
     parser.add_argument(
         '--dry-run',
         action='store_true',
+        default=dry_run,
         help='Run but do not actually post to Reddit (env: DRY_RUN)')
     parser.add_argument(
         '--debug',
         '-d',
         action='store_true',
+        default=debug,
         help='Display additonal debug logging (env: DEBUG)')
     parser.add_argument(
         '--client-id',
