@@ -24,7 +24,7 @@ class Database:
         response = session.get(url)
 
         if not response.ok:
-            raise requests.HTTPError(response)
+            response.raise_for_status()
         
         return response
 
