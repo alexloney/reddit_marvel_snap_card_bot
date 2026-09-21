@@ -8,7 +8,10 @@ class Card(Entry):
         self.cost = cost
         self.power = power
         self.is_token = is_token
-        self.connected_cards = json.loads(connected_cards)
+        if connected_cards is None:
+            self.connected_cards = []
+        else:
+            self.connected_cards = json.loads(connected_cards)
         self.formatted_ability = ''
         self.summoned = summoned
         self.searchable = True
