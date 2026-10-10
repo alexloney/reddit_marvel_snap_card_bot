@@ -15,6 +15,7 @@ class Card(Entry):
         self.formatted_ability = ''
         self.searchable = True
         self.matchable = True
+        self.game_mode = False
 
     def to_constructor_string(self):
         """

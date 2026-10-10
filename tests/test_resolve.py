@@ -9,8 +9,10 @@ from database import Card
 from database import Location
 
 
-def card(def_id, name=None, is_token=False, connected=(), released=True):
-    return Card(def_id, name or def_id, '1', '1', 'ability', released, 'https://example.test/' + def_id, is_token, json.dumps(list(connected)))
+def card(def_id, name=None, is_token=False, connected=(), released=True, game_mode=False):
+    c = Card(def_id, name or def_id, '1', '1', 'ability', released, 'https://example.test/' + def_id, is_token, json.dumps(list(connected)))
+    c.game_mode = game_mode
+    return c
 
 
 def catalog(*entries):
@@ -117,6 +119,40 @@ class TestResolve(unittest.TestCase):
         matches = database.resolve(['Spider-Man'])
 
         self.assertEqual([['SpiderMan']], [ids(m) for m in matches])
+
+    def test_transformed_card_sharing_a_name_resolves_to_its_base_card(self):
+        """
+        Bruce Banner turns into a Hulk that shares its name with the real Hulk,
+        so [[Hulk]] shows Bruce Banner's family and then Hulk on its own.
+        """
+        database = catalog(
+            card('BannerHulk', 'Hulk', True, ['BruceBanner', 'BannerHulk']),
+            card('BruceBanner', 'Bruce Banner', connected=['BannerHulk', 'BruceBanner']),
+            card('Hulk', 'Hulk'))
+
+        matches = database.resolve(['Hulk'])
+
+        self.assertEqual([['BruceBanner', 'BannerHulk'], ['Hulk']], [ids(m) for m in matches])
+
+    def test_game_mode_card_is_not_in_the_family_it_links_to(self):
+        database = catalog(
+            card('Hulk', 'Hulk', connected=['HulkAvengers']),
+            card('HulkAvengers', 'Hulk - Avengers', connected=['Hulk'], released=False, game_mode=True))
+
+        self.assertEqual([['Hulk']], [ids(m) for m in database.resolve(['Hulk'])])
+        self.assertEqual([['HulkAvengers']], [ids(m) for m in database.resolve(['Hulk - Avengers'])])
+
+    def test_token_of_game_mode_card_does_not_resolve_to_it(self):
+        """
+        A Token linked to both a game mode Card and a regular Card belongs to
+        the regular one, e.g. Mjolnir with Thor Champion and Thor.
+        """
+        database = catalog(
+            card('ThorChampion', 'Thor Champion', connected=['Mjolnir'], released=False, game_mode=True),
+            card('Thor', 'Thor', connected=['Mjolnir']),
+            card('Mjolnir', 'Mjolnir', True, ['ThorChampion', 'Thor']))
+
+        self.assertEqual([['Thor', 'Mjolnir']], [ids(m) for m in database.resolve(['Mjolnir'])])
 
     def test_match_renders_tokens_with_prefix(self):
         database = catalog(
