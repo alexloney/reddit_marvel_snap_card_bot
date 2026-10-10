@@ -9,14 +9,16 @@ class RedditConnect:
     def __init__(self, subreddit: str):
         self.subreddit_name = subreddit
         self.seen_comments = []
+        self.my_username = None
 
     def get_my_username(self):
         """
-        Get the username of the account running that is running. No need for an
-        extra query here to Reddit since we know the username from the config
-        file, so instead we will just use what we logged in with.
+        Get the username of the account that is running. The name is fetched
+        from Reddit on first use and cached, as it cannot change while running.
         """
-        return self.reddit.user.me().name
+        if self.my_username is None:
+            self.my_username = self.reddit.user.me().name
+        return self.my_username
     
     def init_reddit_config(self, config_file: str):
         """
@@ -90,9 +92,3 @@ class RedditConnect:
         """
         comment = self.reddit.comment(comment_id)
         comment.reply(reply_text)
-    
-    def enable_readonly(self):
-        """
-        Enable read-only mode, useful for dry run
-        """
-        self.reddit.read_only = True
