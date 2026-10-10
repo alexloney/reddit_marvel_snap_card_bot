@@ -1,6 +1,8 @@
 import requests
 import json
+import time
 from .patches import patches
+from .marvelsnappro import card_from_record
 from wells.utils import retry
 
 from . import Card
@@ -57,34 +59,9 @@ class Database:
 
         self.cards = []
         self.locations = []
+        now = time.time()
         for card in jdata:
-            def_id = jdata[card]['CardDefId']
-            name = jdata[card]['name']
-            cost = jdata[card]['cost']
-            power = jdata[card]['power']
-            ability = jdata[card]['description']
-            url = 'https://marvelsnap.pro/cards/' + card
-            is_token = jdata[card]['is_Token']
-            source = jdata[card]['source']
-            connected_cards = jdata[card]['connected_cards']
-
-            # Cards do not appear to have a "released" flag, so I am inferring
-            # that it is released by checking if it has a source and it is not
-            # a token. This may need to be updated for a better way to determine
-            released = True
-            if is_token == '0' and source == 'None':
-                released = False
-
-            self.cards.append(Card(
-                def_id = def_id, 
-                name = name, 
-                cost = cost, 
-                power = power, 
-                ability = ability, 
-                released = released, 
-                url = url, 
-                is_token = (True if is_token == '1' else False), 
-                connected_cards = connected_cards))
+            self.cards.append(card_from_record(card, jdata[card], now))
             self.patch_card(self.cards[-1])
             self.cards[-1].format_ability_from_html()
 
@@ -233,30 +210,31 @@ class Database:
 
         for def_id in entry.connected_cards:
             card = self._find_by_def_id(def_id)
-            if card is not None and not card.is_token:
+            if card is not None and not card.is_token and not card.game_mode:
                 return card
 
         # Nico links to her spells BUT her spells do not link back to her, so
         # when the forward lookup finds nothing, search for any Base Card that
         # lists this Token.
         for card in self.cards:
-            if not card.is_token and entry.def_id in card.connected_cards:
+            if not card.is_token and not card.game_mode and entry.def_id in card.connected_cards:
                 return card
 
         return entry
 
     def _tokens_of(self, entry):
         """
-        The Tokens listed by a Base Card, in the order the Card lists them
+        The Tokens listed by a Base Card, in the order the Card lists them. A
+        game mode Card stands alone: it has no Tokens and is no Card's Token.
         """
-        if not isinstance(entry, Card) or entry.is_token:
+        if not isinstance(entry, Card) or entry.is_token or entry.game_mode:
             return []
 
         tokens = []
         for def_id in entry.connected_cards:
             token = self._find_by_def_id(def_id)
             # Upstream data sometimes has a card list itself as connected
-            if token is not None and token.def_id != entry.def_id:
+            if token is not None and token.def_id != entry.def_id and                     not (isinstance(token, Card) and token.game_mode):
                 tokens.append(token)
         return tokens
 
