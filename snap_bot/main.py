@@ -7,10 +7,9 @@ import os
 import sys
 import time
 
-from database import Database, Card
+from database import Database
 from reddit_connect import RedditConnect
 from comments import CommentParser
-import utils
 
 logging.basicConfig(
     format='%(asctime)s %(levelname)-8s %(message)s',
@@ -219,33 +218,11 @@ if __name__ == '__main__':
                 parser = CommentParser(comment)
                 card_names = parser.parse()
 
-                # Match all of the cards then remove duplicates
-                matched_cards = []
-                for name in card_names:
-                    for item in database.search(name):
-                        matched_cards.append(item)
-                unique_cards = utils.remove_duplicate_cards(matched_cards)
+                # Resolve the tags to the Matches that make up the reply, then
+                # combine them together into a single output message
+                matches = database.resolve(card_names)
+                response = ''.join(str(match) for match in matches)
 
-                # Resolve all tokens to their base cards if possible
-                unique_cards = utils.resolve_tokens_to_base(database, unique_cards)
-                
-                # Resolving tokens to cards could add duplicate cards, since a
-                # card like Snowguard or Nico call their summon cards the same
-                # as the base card. This could result in duplicating cards and
-                # causing a much larger output than expected. Removing
-                # duplicates here before we expand back into tokens will resolve
-                # this issue.
-                unique_cards = utils.remove_duplicate_cards(unique_cards)
-
-                # Now reverse the above and resolve all tokens from all base cards
-                unique_cards = utils.insert_tokens_from_cards(database, unique_cards)
-
-                # Combine all of the cards from above together into a single
-                # output message
-                response = ''
-                for name in unique_cards:
-                    response += str(name)
-                
                 # If our response has a length, this means we identified a card
                 # request and correctly matched it to a card to reply with. If
                 # that is the case, we may proceed with the request
