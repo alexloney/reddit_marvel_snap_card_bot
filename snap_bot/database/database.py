@@ -5,6 +5,7 @@ from wells.utils import retry
 
 from . import Card
 from . import Location
+from . import Match
 
 class Database:
     def __init__(self, max_fuzzy_distance: int = 2, exact_match_threshold: int = 3):
@@ -83,8 +84,7 @@ class Database:
                 released = released, 
                 url = url, 
                 is_token = (True if is_token == '1' else False), 
-                connected_cards = connected_cards, 
-                summoned = False))
+                connected_cards = connected_cards))
             self.patch_card(self.cards[-1])
             self.cards[-1].format_ability_from_html()
 
@@ -118,7 +118,7 @@ class Database:
         """
         self.update_card_database_marvelsnappro()
     
-    def search(self, query: str):
+    def _search(self, query: str):
         """
         Thus function will loop through all cards located in our lookup and find
         the clostest match to the search term. It will then loop through all
@@ -205,9 +205,9 @@ class Database:
         
         return []
 
-    def search_defid(self, query: str):
+    def _find_by_def_id(self, query: str):
         """
-        Search for a card by name using an exact match instead of fuzzy
+        Look up an Entry by its exact def_id instead of a fuzzy name match
         """
 
         # Always check cards first, so that the base card will be at the top of
@@ -221,3 +221,61 @@ class Database:
                 return card
         
         return None
+
+    def _base_card_for(self, entry):
+        """
+        If the Entry is a Token, return the Base Card that creates it, or the
+        Token itself if no Base Card can be found. Any other Entry is returned
+        unchanged.
+        """
+        if not isinstance(entry, Card) or not entry.is_token:
+            return entry
+
+        for def_id in entry.connected_cards:
+            card = self._find_by_def_id(def_id)
+            if card is not None and not card.is_token:
+                return card
+
+        # Nico links to her spells BUT her spells do not link back to her, so
+        # when the forward lookup finds nothing, search for any Base Card that
+        # lists this Token.
+        for card in self.cards:
+            if not card.is_token and entry.def_id in card.connected_cards:
+                return card
+
+        return entry
+
+    def _tokens_of(self, entry):
+        """
+        The Tokens listed by a Base Card, in the order the Card lists them
+        """
+        if not isinstance(entry, Card) or entry.is_token:
+            return []
+
+        tokens = []
+        for def_id in entry.connected_cards:
+            token = self._find_by_def_id(def_id)
+            # Upstream data sometimes has a card list itself as connected
+            if token is not None and token.def_id != entry.def_id:
+                tokens.append(token)
+        return tokens
+
+    def resolve(self, tags):
+        """
+        Turn the Tags of a Request into the Matches that make up its Reply.
+
+        Each Tag is fuzzy matched; a matched Token is replaced by its Base Card
+        and a Base Card carries the Tokens of its Card Family. A Base Card or
+        Location matched by several Tags (directly or through its Tokens) is
+        returned once, though a Token may appear under more than one Base Card.
+        """
+        matches = []
+        seen = set()
+        for tag in tags:
+            for entry in self._search(tag):
+                head = self._base_card_for(entry)
+                if head.def_id in seen:
+                    continue
+                seen.add(head.def_id)
+                matches.append(Match(head, self._tokens_of(head)))
+        return matches

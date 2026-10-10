@@ -4,6 +4,7 @@ import sys
 sys.path.append('../snap_bot')
 sys.path.append('snap_bot')
 from database import Card
+from database import Match
 
 class TestCommentParser(unittest.TestCase):
     def test_card_text_generation(self):
@@ -11,7 +12,7 @@ class TestCommentParser(unittest.TestCase):
         Test that a card string output is the exact expected string output for
         displaying
         """
-        card = Card('Wolverine', 'Wolverine', '2', '2', 'When this is discarded or destroyed, regenerate it with +2 Power at a random location.', True, 'https://marvelsnap.pro/cards/wolverine', False, '[]', False)
+        card = Card('Wolverine', 'Wolverine', '2', '2', 'When this is discarded or destroyed, regenerate it with +2 Power at a random location.', True, 'https://marvelsnap.pro/cards/wolverine', False, '[]')
         card.format_ability_from_html()
 
         card_text = str(card)
@@ -24,7 +25,7 @@ class TestCommentParser(unittest.TestCase):
         Test that a card string output with HTML contents is the exact string
         output for displaying
         """
-        card = Card('NicoMinoru', 'Nico Minoru', '1', '2', '<b>On Reveal:</b> After you play your next card, cast a spell. <i>(The spell changes each turn.)</i>', True, 'https://marvelsnap.pro/cards/nicominoru', False, '[]', False)
+        card = Card('NicoMinoru', 'Nico Minoru', '1', '2', '<b>On Reveal:</b> After you play your next card, cast a spell. <i>(The spell changes each turn.)</i>', True, 'https://marvelsnap.pro/cards/nicominoru', False, '[]')
         card.format_ability_from_html()
 
         card_text = str(card)
@@ -36,7 +37,7 @@ class TestCommentParser(unittest.TestCase):
         """
         Test that a card marked as unreleased includes the appropriate tag
         """
-        card = Card('Wolverine', 'Wolverine', '2', '2', 'When this is discarded or destroyed, regenerate it with +2 Power at a random location.', False, 'https://marvelsnap.pro/cards/wolverine', False, '[]', False)
+        card = Card('Wolverine', 'Wolverine', '2', '2', 'When this is discarded or destroyed, regenerate it with +2 Power at a random location.', False, 'https://marvelsnap.pro/cards/wolverine', False, '[]')
         card.format_ability_from_html()
 
         card_text = str(card)
@@ -44,29 +45,32 @@ class TestCommentParser(unittest.TestCase):
 
         self.assertEqual(expected_card_text, card_text)
     
-    def test_card_text_summon_generation(self):
-        """
-        Test that a summoned card produces the correct formatting
-        """
-        card = Card('MindStone', 'Mind Stone', '1', '1', '<b>On Reveal:</b> Draw 2 1-Cost cards from your deck.', True, 'https://marvelsnap.pro/cards/mindstone', True, '["Thanos"]', True)
-        card.format_ability_from_html()
-
-        card_text = str(card)
-        expected_card_text = r'* **\[[Mind Stone](https://marvelsnap.pro/cards/mindstone)\]** **Cost:** 1 **Power:** 1' + '  \n' + r'**Ability:** **On Reveal:** Draw 2 1-Cost cards from your deck.' + '\n\n'
-
-        self.assertEqual(expected_card_text, card_text)
-    
     def test_card_text_evoled(self):
         """
         Test that an evolved card does not have the color HTML text
         """
-        card = Card('Hulk', 'Hulk', '6', '12', '<color=#fad728>When you end a turn with unspent Energy, +2 Power. <i>(if in hand or in play)</i></color>', True, None, False, '[]', True)
+        card = Card('Hulk', 'Hulk', '6', '12', '<color=#fad728>When you end a turn with unspent Energy, +2 Power. <i>(if in hand or in play)</i></color>', True, None, False, '[]')
         card.format_ability_from_html()
 
         card_text = str(card)
-        expected_card_text = r'* **\[Hulk\]** **Cost:** 6 **Power:** 12' + '  \n' + r'**Ability:** When you end a turn with unspent Energy, +2 Power. *(if in hand or in play)*' + '\n\n'
+        expected_card_text = r'**\[Hulk\]** **Cost:** 6 **Power:** 12' + '  \n' + r'**Ability:** When you end a turn with unspent Energy, +2 Power. *(if in hand or in play)*' + '\n\n'
 
         self.assertEqual(expected_card_text, card_text)
+
+    def test_match_text_prefixes_tokens(self):
+        """
+        Test that a Match renders its Base Card followed by each Token marked
+        with the summoned prefix
+        """
+        base = Card('Thanos', 'Thanos', '6', '10', 'Shuffle the stones.', True, 'https://marvelsnap.pro/cards/thanos', False, '["MindStone"]')
+        token = Card('MindStone', 'Mind Stone', '1', '1', '<b>On Reveal:</b> Draw 2 1-Cost cards from your deck.', True, 'https://marvelsnap.pro/cards/mindstone', True, '["Thanos"]')
+        base.format_ability_from_html()
+        token.format_ability_from_html()
+
+        match_text = str(Match(base, [token]))
+        expected_text = str(base) + '* ' + r'**\[[Mind Stone](https://marvelsnap.pro/cards/mindstone)\]** **Cost:** 1 **Power:** 1' + '  \n' + r'**Ability:** **On Reveal:** Draw 2 1-Cost cards from your deck.' + '\n\n'
+
+        self.assertEqual(expected_text, match_text)
 
 if __name__ == '__main__':
     unittest.main()

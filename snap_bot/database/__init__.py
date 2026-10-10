@@ -4,4 +4,5 @@ from .lookup import Lookup
 from .entry import Entry
 from .card import Card
 from .location import Location
+from .match import Match
 from .database import Database
