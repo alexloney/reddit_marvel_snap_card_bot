@@ -19,6 +19,17 @@ class Location(Entry):
             rarity = self.rarity,
             ability = self.ability)
 
+    def plain_text(self):
+        """
+        The same details as __str__, without any Markdown, so that it reads
+        cleanly where Markdown is shown as raw text
+        """
+        return '[{name}] {status}Location: Rarity {rarity}\nDescription: {ability}\n\n'.format(
+            name = self.name,
+            status = ('(Unreleased) ' if not self.released else ''),
+            rarity = self.rarity,
+            ability = self.plain_ability())
+
     def __eq__(self, other):
         """
         Equality operator for comparing locations

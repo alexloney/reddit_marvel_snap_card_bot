@@ -13,3 +13,9 @@ class Match:
         for token in self.tokens:
             text += '* ' + str(token)
         return text
+
+    def plain_text(self):
+        text = self.entry.plain_text()
+        for token in self.tokens:
+            text += '- ' + token.plain_text()
+        return text

@@ -72,5 +72,38 @@ class TestCommentParser(unittest.TestCase):
 
         self.assertEqual(expected_text, match_text)
 
+    def test_card_plain_text_has_no_markup(self):
+        """
+        Test that a card's plain text keeps its details but drops both the
+        Markdown and the HTML from its ability
+        """
+        card = Card('NicoMinoru', 'Nico Minoru', '1', '2', '<b>On Reveal:</b> After you play your next card, cast a spell. <i>(The spell changes each turn.)</i>', True, 'https://marvelsnap.pro/cards/nicominoru', False, '[]')
+        card.format_ability_from_html()
+
+        expected_text = '[Nico Minoru] Cost: 1 Power: 2\nAbility: On Reveal: After you play your next card, cast a spell. (The spell changes each turn.)\n\n'
+
+        self.assertEqual(expected_text, card.plain_text())
+
+    def test_unreleased_card_plain_text_is_labelled(self):
+        """
+        Test that a card marked as unreleased is labelled in its plain text
+        """
+        card = Card('Wolverine', 'Wolverine', '2', '2', 'Regenerates.', False, 'https://marvelsnap.pro/cards/wolverine', False, '[]')
+
+        self.assertEqual('[Wolverine] (Unreleased) Cost: 2 Power: 2\nAbility: Regenerates.\n\n', card.plain_text())
+
+    def test_match_plain_text_prefixes_tokens(self):
+        """
+        Test that a Match's plain text lists its Base Card followed by each
+        Token marked with a dash
+        """
+        base = Card('Thanos', 'Thanos', '6', '10', 'Shuffle the stones.', True, 'https://marvelsnap.pro/cards/thanos', False, '["MindStone"]')
+        token = Card('MindStone', 'Mind Stone', '1', '1', '<color=#fff><b>On Reveal:</b></color> Draw 2 1-Cost cards from your deck.', True, 'https://marvelsnap.pro/cards/mindstone', True, '["Thanos"]')
+
+        match_text = Match(base, [token]).plain_text()
+        expected_text = base.plain_text() + '- [Mind Stone] Cost: 1 Power: 1\nAbility: On Reveal: Draw 2 1-Cost cards from your deck.\n\n'
+
+        self.assertEqual(expected_text, match_text)
+
 if __name__ == '__main__':
     unittest.main()
