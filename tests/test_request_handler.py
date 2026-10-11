@@ -4,8 +4,8 @@ import sys
 
 sys.path.append('../snap_bot')
 sys.path.append('snap_bot')
-from database import Database
-from database import Card
+from catalog import Card
+from support import build_catalog
 from comments import Comment
 from request_handler import RequestHandler, Status
 
@@ -33,12 +33,9 @@ class FakeReddit:
 
 
 def catalog():
-    database = Database()
-    database.cards = [
-        Card('Wolverine', 'Wolverine', '2', '2', 'Regenerates.', True, 'https://example.test/wolverine', False, '[]')]
-    for card in database.cards:
-        card.format_ability_from_html()
-    return database
+    wolverine = Card('Wolverine', 'Wolverine', '2', '2', 'Regenerates.', True, 'https://example.test/wolverine', False, '[]')
+    wolverine.format_ability_from_html()
+    return build_catalog(wolverine)
 
 
 def comment(body, author='someone', id='c1'):

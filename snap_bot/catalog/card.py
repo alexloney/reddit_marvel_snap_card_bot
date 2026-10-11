@@ -13,8 +13,6 @@ class Card(Entry):
         else:
             self.connected_cards = json.loads(connected_cards)
         self.formatted_ability = ''
-        self.searchable = True
-        self.matchable = True
         self.game_mode = False
 
     def to_constructor_string(self):

@@ -25,8 +25,8 @@ class RequestHandler:
     get_comment_reply_author_names(comment_id) and add_reply(comment_id, text).
     RedditConnect is the production adapter.
     """
-    def __init__(self, database, reddit, dry_run: bool = False):
-        self.database = database
+    def __init__(self, catalog, reddit, dry_run: bool = False):
+        self.catalog = catalog
         self.reddit = reddit
         self.dry_run = dry_run
 
@@ -39,7 +39,7 @@ class RequestHandler:
             return Status.IGNORED_AUTHOR
 
         tags = CommentParser(comment).parse()
-        matches = self.database.resolve(tags)
+        matches = self.catalog.resolve(tags)
         response = ''.join(str(match) for match in matches)
 
         # An empty response means this was not a Request, or nothing matched
