@@ -8,11 +8,12 @@ from comments import CommentParser
 # already answered
 LEGACY_BOT_USERNAME = 'MarvelSnapCardBot'
 
-# Reddit's reply notification shows the raw comment text, so a Reply is first
-# posted as plain text and only edited to its Markdown form once the
-# notification has gone out. Edits within Reddit's ~3 minute grace period are
-# not marked as edited.
-FORMAT_EDIT_DELAY_SECONDS = 5
+# Reddit builds the reply notification from the comment's raw text when the
+# notification is sent, which can be well after the comment is posted. A Reply
+# is therefore posted as plain text and only edited to its Markdown form after
+# this delay. Edits within Reddit's ~3 minute grace period are not marked as
+# edited, so the delay must stay below that.
+DEFAULT_FORMAT_EDIT_DELAY_SECONDS = 60
 
 
 class Status(enum.Enum):
@@ -28,16 +29,25 @@ class RequestHandler:
     Decides what to do with a single comment: whether it is a Request we should
     answer and, if so, builds and posts the Reply.
 
+    A Reply is posted as plain text and its Markdown form is queued; the caller
+    must call apply_due_edits() regularly to apply the queued edits once their
+    delay has passed.
+
     `reddit` is the seam to Reddit, it must provide get_my_username(),
     get_comment_reply_author_names(comment_id), add_reply(comment_id, text)
     returning the new reply's ID, and edit_reply(reply_id, text). RedditConnect
     is the production adapter.
     """
-    def __init__(self, catalog, reddit, dry_run: bool = False, sleep=time.sleep):
+    def __init__(self, catalog, reddit, dry_run: bool = False,
+                 format_edit_delay: float = DEFAULT_FORMAT_EDIT_DELAY_SECONDS,
+                 clock=time.monotonic):
         self.catalog = catalog
         self.reddit = reddit
         self.dry_run = dry_run
-        self.sleep = sleep
+        self.format_edit_delay = format_edit_delay
+        self.clock = clock
+        # (due time, reply ID, Markdown text), oldest first
+        self.pending_edits = []
 
     def handle(self, comment):
         my_username = self.reddit.get_my_username()
@@ -76,13 +86,22 @@ class RequestHandler:
             return Status.DRY_RUN
 
         reply_id = self.reddit.add_reply(comment.id, plain_response)
-
-        # The Reply is already up, so a failed edit leaves it readable as plain
-        # text rather than being worth stopping the bot for
-        self.sleep(FORMAT_EDIT_DELAY_SECONDS)
-        try:
-            self.reddit.edit_reply(reply_id, response)
-        except Exception:
-            logging.exception('Failed to apply formatting to reply ' + str(reply_id))
-
+        self.pending_edits.append((self.clock() + self.format_edit_delay, reply_id, response))
         return Status.REPLIED
+
+    def apply_due_edits(self, force: bool = False):
+        """
+        Edit each queued Reply whose delay has passed into its Markdown form.
+        `force` applies every queued edit regardless, for use when shutting
+        down.
+        """
+        now = self.clock()
+        while self.pending_edits and (force or self.pending_edits[0][0] <= now):
+            _, reply_id, response = self.pending_edits.pop(0)
+
+            # The Reply is already up, so a failed edit leaves it readable as
+            # plain text rather than being worth stopping the bot for
+            try:
+                self.reddit.edit_reply(reply_id, response)
+            except Exception:
+                logging.exception('Failed to apply formatting to reply ' + str(reply_id))

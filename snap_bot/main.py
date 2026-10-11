@@ -9,7 +9,7 @@ import time
 
 from catalog import Catalog, MarvelSnapPro
 from reddit_connect import RedditConnect
-from request_handler import RequestHandler
+from request_handler import RequestHandler, DEFAULT_FORMAT_EDIT_DELAY_SECONDS
 
 logging.basicConfig(
     format='%(asctime)s %(levelname)-8s %(message)s',
@@ -30,6 +30,7 @@ if __name__ == '__main__':
     db_update_timeout = 60*60*24
     max_fuzzy_distance = 2
     exact_match_threshold = 3
+    format_edit_delay = DEFAULT_FORMAT_EDIT_DELAY_SECONDS
     dry_run = False
     debug = False
     client_id = ''
@@ -48,6 +49,8 @@ if __name__ == '__main__':
         max_fuzzy_distance = int(os.environ.get('MAX_FUZZY_DISTANCE'))
     if os.environ.get('EXACT_MATCH_THRESHOLD') is not None:
         exact_match_threshold = int(os.environ.get('EXACT_MATCH_THRESHOLD'))
+    if os.environ.get('FORMAT_EDIT_DELAY') is not None:
+        format_edit_delay = int(os.environ.get('FORMAT_EDIT_DELAY'))
     if os.environ.get('DRY_RUN') is not None:
         if os.environ.get('DRY_RUN').lower() == 'true':
             dry_run = True
@@ -97,6 +100,11 @@ if __name__ == '__main__':
         type=int,
         help='Minimum string length required for an exact match to be made (env: EXACT_MATCH_THRESHOLD)')
     parser.add_argument(
+        '--format-edit-delay',
+        default=format_edit_delay,
+        type=int,
+        help='Delay (in seconds) between posting a plain text reply and editing in its formatting, keep below 180 to avoid the edited mark (env: FORMAT_EDIT_DELAY)')
+    parser.add_argument(
         '--dry-run',
         action='store_true',
         default=dry_run,
@@ -135,6 +143,7 @@ if __name__ == '__main__':
     db_update_timeout = args.database_update_timeout
     max_fuzzy_distance = args.max_fuzzy_distance
     exact_match_threshold = args.exact_match_threshold
+    format_edit_delay = args.format_edit_delay
     dry_run = args.dry_run
     debug = args.debug
     client_id = args.client_id
@@ -148,6 +157,7 @@ if __name__ == '__main__':
     logging.info('DB Update Timeout: ' + str(db_update_timeout))
     logging.info('Max Fuzzing Distance: ' + str(max_fuzzy_distance))
     logging.info('Exact Match Threshold: ' + str(exact_match_threshold))
+    logging.info('Format Edit Delay: ' + str(format_edit_delay))
     logging.info('Dry Run: ' + str(dry_run))
     logging.info('Debug: ' + str(debug))
     logging.info('Client ID: ' + client_id)
@@ -191,7 +201,7 @@ if __name__ == '__main__':
         reddit_connect.init_reddit_args(client_id, client_secret, user_agent, reddit_username, reddit_password)
     logging.info('Reddit connection established')
 
-    request_handler = RequestHandler(catalog, reddit_connect, dry_run)
+    request_handler = RequestHandler(catalog, reddit_connect, dry_run, format_edit_delay)
 
     # Continue forever...or untill killed
     try:
@@ -216,7 +226,10 @@ if __name__ == '__main__':
 
                 request_handler.handle(comment)
 
+            request_handler.apply_due_edits()
+
     except KeyboardInterrupt:
-        pass
+        # Format any Replies still waiting, rather than leave them as plain text
+        request_handler.apply_due_edits(force=True)
 
 
