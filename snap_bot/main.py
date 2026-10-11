@@ -7,7 +7,7 @@ import os
 import sys
 import time
 
-from database import Database
+from catalog import Catalog, MarvelSnapPro
 from reddit_connect import RedditConnect
 from request_handler import RequestHandler
 
@@ -171,12 +171,12 @@ if __name__ == '__main__':
         print('Error: You must provide a subreddit to monitor')
         sys.exit(1)
 
-    database = Database(max_fuzzy_distance, exact_match_threshold)
+    catalog = Catalog(MarvelSnapPro(), max_fuzzy_distance, exact_match_threshold)
 
-    # Perform our initial database update to get the first version of our card
-    # lookups
-    logging.info('Loading card lookup database')
-    database.update_card_database()
+    # Perform our initial catalog refresh to get the first version of our card
+    # lookups. Without it there is nothing to serve, so a failure here is fatal
+    logging.info('Loading card catalog')
+    catalog.refresh()
     last_database_update = datetime.datetime.now()
     logging.info('Next DB update in ' + str(db_update_timeout) + 's')
 
@@ -191,20 +191,24 @@ if __name__ == '__main__':
         reddit_connect.init_reddit_args(client_id, client_secret, user_agent, reddit_username, reddit_password)
     logging.info('Reddit connection established')
 
-    request_handler = RequestHandler(database, reddit_connect, dry_run)
+    request_handler = RequestHandler(catalog, reddit_connect, dry_run)
 
     # Continue forever...or untill killed
     try:
         while True:
 
             # Check the current date/time and compare it to the last time the
-            # card lookup database has been updated. If it exceeds our set timeout
-            # interval, update our internal card lookup database and reset our
-            # last time we updated.
+            # catalog has been refreshed. If it exceeds our set timeout
+            # interval, refresh it and reset our last time we refreshed. A
+            # failed refresh keeps serving the existing catalog and is retried
+            # after the next interval.
             current_time = datetime.datetime.now()
             if (current_time - last_database_update).total_seconds() > db_update_timeout:
-                logging.info('Reloading card lookup database')
-                database.update_card_database()
+                logging.info('Reloading card catalog')
+                try:
+                    catalog.refresh()
+                except Exception:
+                    logging.exception('Catalog refresh failed, keeping the existing catalog')
                 last_database_update = datetime.datetime.now()
 
             # Fetch the next set of comments

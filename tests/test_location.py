@@ -3,7 +3,7 @@ import sys
 
 sys.path.append('../snap_bot')
 sys.path.append('snap_bot')
-from database import Location
+from catalog import Location
 
 class TestCommentParser(unittest.TestCase):
     def test_card_text_generation(self):
