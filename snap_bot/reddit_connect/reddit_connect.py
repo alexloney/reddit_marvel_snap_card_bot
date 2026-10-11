@@ -88,7 +88,15 @@ class RedditConnect:
     @retry(times=3, interval=[1, 5, 10])
     def add_reply(self, comment_id: str, reply_text: str):
         """
-        Load a specific comment by ID and submit a reply to it
+        Load a specific comment by ID and submit a reply to it, returning the
+        ID of the new reply
         """
         comment = self.reddit.comment(comment_id)
-        comment.reply(reply_text)
+        return comment.reply(reply_text).id
+
+    @retry(times=3, interval=[1, 5, 10])
+    def edit_reply(self, reply_id: str, reply_text: str):
+        """
+        Replace the text of a reply previously posted by the bot
+        """
+        self.reddit.comment(reply_id).edit(reply_text)

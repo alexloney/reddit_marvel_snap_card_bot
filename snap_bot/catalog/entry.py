@@ -25,3 +25,10 @@ class Entry:
         """
         self.formatted_ability = self.ability.replace('<b>', '**').replace('</b>', '**').replace('<i>', '*').replace('</i>', '*').replace('</color>', '')
         self.formatted_ability = re.sub(r'<color=[^>]+>', '', self.formatted_ability)
+
+    def plain_ability(self):
+        """
+        The ability with any HTML markup removed, for use in plain text where
+        no formatting can be shown
+        """
+        return re.sub(r'<[^>]+>', '', self.ability)
